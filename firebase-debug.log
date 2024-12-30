@@ -1,0 +1,19 @@
+[debug] [2024-12-04T21:24:41.948Z] ----------------------------------------------------------------------
+[debug] [2024-12-04T21:24:41.953Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\admin\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js apps:sdkconfig android 1:689758069026:android:e31206c7b20622f368457b --json
+[debug] [2024-12-04T21:24:41.954Z] CLI Version:   13.10.2
+[debug] [2024-12-04T21:24:41.955Z] Platform:      win32
+[debug] [2024-12-04T21:24:41.955Z] Node Version:  v22.2.0
+[debug] [2024-12-04T21:24:41.955Z] Time:          Thu Dec 05 2024 00:24:41 GMT+0300 (Arabian Standard Time)
+[debug] [2024-12-04T21:24:41.955Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2024-12-04T21:24:42.102Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[debug] [2024-12-04T21:24:42.111Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2024-12-04T21:24:42.111Z] > authorizing via signed-in user (adelalsumiti@gmail.com)
+[debug] [2024-12-04T21:24:42.119Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/-/androidApps/1:689758069026:android:e31206c7b20622f368457b/config [none]
+[debug] [2024-12-04T21:24:56.159Z] *** [apiv2] error from fetch(https://firebase.googleapis.com/v1beta1/projects/-/androidApps/1:689758069026:android:e31206c7b20622f368457b/config, {"headers":{},"method":"GET","signal":{}}): FetchError: request to https://firebase.googleapis.com/v1beta1/projects/-/androidApps/1:689758069026:android:e31206c7b20622f368457b/config failed, reason: socket hang up
+[debug] [2024-12-04T21:24:56.160Z] Failed to make request to https://firebase.googleapis.com/v1beta1/projects/-/androidApps/1:689758069026:android:e31206c7b20622f368457b/config
+[debug] [2024-12-04T21:24:57.939Z] FirebaseError: Failed to make request to https://firebase.googleapis.com/v1beta1/projects/-/androidApps/1:689758069026:android:e31206c7b20622f368457b/config
+    at RetryOperation._fn (C:\Users\admin\AppData\Roaming\npm\node_modules\firebase-tools\lib\apiv2.js:259:31)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+[error] 
+[error] Error: Failed to get ANDROID app configuration. See firebase-debug.log for more info.

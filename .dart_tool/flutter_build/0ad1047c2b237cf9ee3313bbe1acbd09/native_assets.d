@@ -1,0 +1,1 @@
+ C:\\Users\\admin\\Desktop\\Flutter\\school_management\\.dart_tool\\flutter_build\\0ad1047c2b237cf9ee3313bbe1acbd09\\native_assets.yaml: 
