@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 // import 'package:school_management/addStudentPage.dart';
 // import 'package:school_management/addTeacher.dart';
 import 'package:school_management/core/class/crud.dart';
+import 'package:school_management/core/services/report_Service.dart';
 import 'package:school_management/core/services/services.dart';
 import 'package:school_management/routes.dart';
 
@@ -17,6 +18,7 @@ void main() async {
   await initialServices();
   print("---------initialServices------");
   Get.put(Crud());
+  Get.put(ReportService());
 
   runApp(const MyApp());
 }

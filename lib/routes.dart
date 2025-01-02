@@ -32,7 +32,6 @@ List<GetPage<dynamic>>? routes = [
   GetPage(name: AppRoute.signUpPage, page: () => const SignUpPage()),
 
   //  // Home
-//
 
   GetPage(
       name: AppRoute.homePage,

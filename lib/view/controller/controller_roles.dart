@@ -55,6 +55,7 @@ class ControllerRolesHomeImp extends ControllerRolesHome {
   @override
   widgetAdmin() {
     return SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 16.0, right: 16.0, left: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -62,7 +63,6 @@ class ControllerRolesHomeImp extends ControllerRolesHome {
             'خيارات المدير :',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 10),
           GridView(
             physics: const NeverScrollableScrollPhysics(),
             shrinkWrap: true,
@@ -137,6 +137,7 @@ class ControllerRolesHomeImp extends ControllerRolesHome {
   widgetStudent() {
     return Center(
       child: SingleChildScrollView(
+        padding: const EdgeInsets.only(right: 16.0, left: 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -188,8 +189,8 @@ class ControllerRolesHomeImp extends ControllerRolesHome {
   widgetTeacher() {
     return SingleChildScrollView(
       child: Container(
-        // padding: const EdgeInsets.all(5),
-        // margin: const EdgeInsets.only(top: 5, bottom: 5, right: 5, left: 5),
+        padding: const EdgeInsets.all(10),
+        margin: const EdgeInsets.only(top: 5, bottom: 5, right: 8, left: 8),
         decoration: BoxDecoration(
             color: AppColors.primaryColor,
             boxShadow: const [BoxShadow(blurRadius: 3, spreadRadius: 2)],

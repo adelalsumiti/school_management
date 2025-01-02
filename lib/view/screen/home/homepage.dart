@@ -78,72 +78,72 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
         backgroundColor: AppColors.primaryColor,
-        appBar: AppBar(
-          backgroundColor: AppColors.primaryColor,
-          title: const Text(
-            'الصفحة الرئيسية',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          actions: [
-            IconButton(
-              color: AppColors.black,
-              onPressed: () {
-                Get.dialog(
-                    // context: context,
-                    // builder: (context) =>
-                    AlertDialog(
-                  backgroundColor: AppColors.primaryColor,
-                  title: const Text(
-                    'تأكيد تسجيل الخروج',
-                  ),
-                  content: const Text('هل تريد  تسجيل الخروج ؟',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                      )),
-                  actions: [
-                    TextButton(
-                      style: ButtonStyle(
-                        backgroundColor: WidgetStateProperty.all(
-                            AppColors.backgroundIDsColor),
-                      ),
-                      onPressed: () => Get.back(),
-                      child: const Text('إلغاء',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                          )),
-                    ),
-                    TextButton(
-                      style: ButtonStyle(
-                        backgroundColor: WidgetStateProperty.all(
-                            AppColors.backgroundIDsColor),
-                      ),
-                      onPressed: () async {
-                        // Navigator.of(context).pop();
-                        MyServices myServices = Get.find();
+        // appBar: AppBar(
+        //   backgroundColor: AppColors.primaryColor,
+        //   title: const Text(
+        //     'الصفحة الرئيسية',
+        //     style: TextStyle(fontWeight: FontWeight.bold),
+        //   ),
+        //   actions: [
+        //     IconButton(
+        //       color: AppColors.black,
+        //       onPressed: () {
+        //         Get.dialog(
+        //             // context: context,
+        //             // builder: (context) =>
+        //             AlertDialog(
+        //           backgroundColor: AppColors.primaryColor,
+        //           title: const Text(
+        //             'تأكيد تسجيل الخروج',
+        //           ),
+        //           content: const Text('هل تريد  تسجيل الخروج ؟',
+        //               style: TextStyle(
+        //                 fontWeight: FontWeight.bold,
+        //               )),
+        //           actions: [
+        //             TextButton(
+        //               style: ButtonStyle(
+        //                 backgroundColor: WidgetStateProperty.all(
+        //                     AppColors.backgroundIDsColor),
+        //               ),
+        //               onPressed: () => Get.back(),
+        //               child: const Text('إلغاء',
+        //                   style: TextStyle(
+        //                     fontWeight: FontWeight.bold,
+        //                   )),
+        //             ),
+        //             TextButton(
+        //               style: ButtonStyle(
+        //                 backgroundColor: WidgetStateProperty.all(
+        //                     AppColors.backgroundIDsColor),
+        //               ),
+        //               onPressed: () async {
+        //                 // Navigator.of(context).pop();
+        //                 MyServices myServices = Get.find();
 
-                        myServices.sharedPreferences.clear();
+        //                 myServices.sharedPreferences.clear();
 
-                        myServices.sharedPreferences
-                            .setString("loginPage", "1");
+        //                 myServices.sharedPreferences
+        //                     .setString("loginPage", "1");
 
-                        Get.back();
-                        logoutUser();
-                        // Get.offAllNamed(AppRoute.loginPage);
-                      },
-                      child: const Text(
-                        'خروج',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.red),
-                      ),
-                    ),
-                  ],
-                ));
-              },
-              icon: const Icon(Icons.logout),
-              tooltip: 'تسجيل الخروج',
-            ),
-          ],
-        ),
+        //                 Get.back();
+        //                 logoutUser();
+        //                 // Get.offAllNamed(AppRoute.loginPage);
+        //               },
+        //               child: const Text(
+        //                 'خروج',
+        //                 style: TextStyle(
+        //                     fontWeight: FontWeight.bold, color: Colors.red),
+        //               ),
+        //             ),
+        //           ],
+        //         ));
+        //       },
+        //       icon: const Icon(Icons.logout),
+        //       tooltip: 'تسجيل الخروج',
+        //     ),
+        //   ],
+        // ),
         body: WillPopScope(
           onWillPop: () {
             Get.dialog(
@@ -200,40 +200,147 @@ class _HomePageState extends State<HomePage> {
             return Future.value(false);
           },
           child: GetBuilder<ControllerRolesHomeImp>(
-            builder: (controller) => Padding(
-              padding: const EdgeInsets.all(16.0),
+            builder: (controller) =>
+                //  Padding(
+                //   padding: const EdgeInsets.all(16.0),
+                //   child:
+                SingleChildScrollView(
+              padding: const EdgeInsets.all(1.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'اهلا بك، $userName',
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
+                  Container(
+                    // padding: const EdgeInsets.only(right: 8, left: 8),
+                    decoration: const BoxDecoration(
+                        color: AppColors.primaryColor,
+                        boxShadow: [
+                          BoxShadow(
+                              blurRadius: 10,
+                              spreadRadius: 2.2,
+                              color: AppColors.black)
+                        ],
+                        borderRadius: BorderRadiusDirectional.only(
+                            bottomEnd: Radius.circular(40),
+                            bottomStart: Radius.circular(40))),
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: [
+                        AppBar(
+                          backgroundColor: AppColors.primaryColor,
+                          title: const Text(
+                            'الصفحة الرئيسية',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          actions: [
+                            IconButton(
+                              color: AppColors.black,
+                              onPressed: () {
+                                Get.dialog(
+                                    // context: context,
+                                    // builder: (context) =>
+                                    AlertDialog(
+                                  backgroundColor: AppColors.primaryColor,
+                                  title: const Text(
+                                    'تأكيد تسجيل الخروج',
+                                  ),
+                                  content: const Text('هل تريد  تسجيل الخروج ؟',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      )),
+                                  actions: [
+                                    TextButton(
+                                      style: ButtonStyle(
+                                        backgroundColor:
+                                            WidgetStateProperty.all(
+                                                AppColors.backgroundIDsColor),
+                                      ),
+                                      onPressed: () => Get.back(),
+                                      child: const Text('إلغاء',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          )),
+                                    ),
+                                    TextButton(
+                                      style: ButtonStyle(
+                                        backgroundColor:
+                                            WidgetStateProperty.all(
+                                                AppColors.backgroundIDsColor),
+                                      ),
+                                      onPressed: () async {
+                                        // Navigator.of(context).pop();
+                                        MyServices myServices = Get.find();
 
-                  Text(
-                    ' $userEmail',
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
+                                        myServices.sharedPreferences.clear();
 
-                  Text(
-                    'دورك الحالي : $role',
-                    style: const TextStyle(fontSize: 16),
+                                        myServices.sharedPreferences
+                                            .setString("loginPage", "1");
+
+                                        Get.back();
+                                        logoutUser();
+                                        // Get.offAllNamed(AppRoute.loginPage);
+                                      },
+                                      child: const Text(
+                                        'خروج',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.red),
+                                      ),
+                                    ),
+                                  ],
+                                ));
+                              },
+                              icon: const Icon(Icons.logout),
+                              tooltip: 'تسجيل الخروج',
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 15),
+                        Padding(
+                            padding: const EdgeInsets.only(
+                              right: 25,
+                            ),
+                            child: ListView(
+                              shrinkWrap: true,
+                              children: [
+                                Text(
+                                  'اهلا بك، $userName',
+                                  style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                // const SizedBox(height: 10),
+                                Text(
+                                  ' $userEmail',
+                                  style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                // const SizedBox(height: 10),
+                                Text(
+                                  ' دورك الحالي : $role',
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                              ],
+                            )),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 20),
                   // if (role == 'admin') _adminWidgets(context),
                   if (role == 'admin') controller.widgetAdmin(),
                   // if (role == 'teacher') _teacherWidgets(context),
+                  if (role == 'teacher') const SizedBox(height: 20),
+
                   if (role == 'teacher') controller.widgetTeacher(),
+
                   // if (role == 'student') _studentWidgets(context),
                   if (role == 'student') controller.widgetStudent(),
                 ],
               ),
             ),
           ),
+          // ),
         ));
   }
 }
