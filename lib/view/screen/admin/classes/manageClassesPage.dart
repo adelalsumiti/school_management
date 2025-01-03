@@ -5,7 +5,8 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:school_management/core/constant/routes.dart';
 
-import 'package:school_management/linkapi.dart'; // رابط API الخاص بك
+import 'package:school_management/linkapi.dart';
+import 'package:school_management/view/widgets/custom_IconButton_Delete.dart'; // رابط API الخاص بك
 
 class ManageClassesPage extends StatefulWidget {
   const ManageClassesPage({super.key});
@@ -279,57 +280,67 @@ class _ManageClassesPageState extends State<ManageClassesPage> {
                                     ),
                                   ],
                                 ),
-
-                                trailing: Container(
-                                  decoration: const BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      boxShadow: [
-                                        BoxShadow(
-                                            spreadRadius: 0.5, blurRadius: 4)
-                                      ],
-                                      color: Color.fromARGB(248, 255, 255, 255),
-                                      border: Border.symmetric(
-                                          horizontal: BorderSide(),
-                                          vertical: BorderSide())),
-                                  child: IconButton(
-                                    icon: const Icon(Icons.delete),
-                                    // color: Colors.red,
-                                    color: Colors.red[700],
-
-                                    // onPressed: () => _deleteTeacher(teacher['id']),
-                                    onPressed: () {
-                                      showDialog(
-                                        context: context,
-                                        builder: (context) => AlertDialog(
-                                          title: const Text('تأكيد الحذف'),
-                                          content: const Text(
-                                              'هل أنت متأكد من حذف هذا الصف ؟'),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () =>
-                                                  // Navigator.of(context).pop(),
-                                                  Get.back(),
-                                              child: const Text('إلغاء'),
-                                            ),
-                                            TextButton(
-                                              onPressed: () {
-                                                // Navigator.of(context).pop();
-                                                Get.back();
-                                                // _deleteClass(docId);
-                                                _deleteClass(classData['id']);
-                                              },
-                                              child: const Text(
-                                                'حذف',
-                                                style: TextStyle(
-                                                    color: Colors.red),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  ),
+                                trailing: CustomButtonDelete(
+                                  titileMessage: 'تأكيد الحذف',
+                                  bodyMessage: 'هل أنت متأكد من حذف هذا الصف ؟',
+                                  onPressedCancel: () => Get.back(),
+                                  onPressedYes: () async {
+                                    Get.back();
+                                    _deleteClass(classData['id']);
+                                  },
                                 ),
+
+                                // trailing: Container(
+                                //   decoration: const BoxDecoration(
+                                //       shape: BoxShape.circle,
+                                //       boxShadow: [
+                                //         BoxShadow(
+                                //             spreadRadius: 0.5, blurRadius: 4)
+                                //       ],
+                                //       color: Color.fromARGB(248, 255, 255, 255),
+                                //       border: Border.symmetric(
+                                //           horizontal: BorderSide(),
+                                //           vertical: BorderSide())),
+                                //   child: IconButton(
+                                //     icon: const Icon(Icons.delete),
+                                //     // color: Colors.red,
+                                //     color: Colors.red[700],
+
+                                //     // onPressed: () => _deleteTeacher(teacher['id']),
+                                //     onPressed: () {
+                                //       showDialog(
+                                //         context: context,
+                                //         builder: (context) => AlertDialog(
+                                //           title: const Text('تأكيد الحذف'),
+                                //           content: const Text(
+                                //               'هل أنت متأكد من حذف هذا الصف ؟'),
+                                //           actions: [
+                                //             TextButton(
+                                //               onPressed: () =>
+                                //                   // Navigator.of(context).pop(),
+                                //                   Get.back(),
+                                //               child: const Text('إلغاء'),
+                                //             ),
+                                //             TextButton(
+                                //               onPressed: () {
+                                //                 // Navigator.of(context).pop();
+                                //                 Get.back();
+                                //                 // _deleteClass(docId);
+                                //                 _deleteClass(classData['id']);
+                                //               },
+                                //               child: const Text(
+                                //                 'حذف',
+                                //                 style: TextStyle(
+                                //                     color: Colors.red),
+                                //               ),
+                                //             ),
+                                //           ],
+                                //         ),
+                                //       );
+
+                                //     },
+                                //   ),
+                                // ),
 
                                 // trailing: IconButton(
                                 //   icon: const Icon(Icons.delete,

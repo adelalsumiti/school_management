@@ -59,7 +59,7 @@ List<GetPage<dynamic>>? routes = [
       name: AppRoute.studentDetailesPage,
       page: () => const StudentDetailsPage()),
   GetPage(name: AppRoute.addReportPage, page: () => const AddReportPage()),
-  GetPage(name: AppRoute.detailReport, page: () => const DetailReport()),
+  GetPage(name: AppRoute.detailReport, page: () => DetailReport()),
   GetPage(
       name: AppRoute.manageParentsPage, page: () => const ManageParentsPage()),
   GetPage(name: AppRoute.addParentPage, page: () => const AddParentPage()),
@@ -85,9 +85,7 @@ List<GetPage<dynamic>>? routes = [
       page: () => const ManageStudentsPage()),
   GetPage(name: AppRoute.addStudentPage, page: () => const AddStudentPage()),
   GetPage(name: AppRoute.editStudentPage, page: () => const EditStudentPage()),
-  GetPage(
-      name: AppRoute.studentReportsPage,
-      page: () => const StudentReportsPage()),
+  GetPage(name: AppRoute.studentReportsPage, page: () => StudentReportsPage()),
 
   // =====Accounts Page ======
 

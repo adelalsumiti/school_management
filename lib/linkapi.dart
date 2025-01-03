@@ -45,6 +45,7 @@ class AppLink {
   // ============= Name Files In PhP  =>
 
   static String addReport = "$reports/addReport.php";
+  static String deleteReport = '$reports/deleteReport.php';
   static String getReports = "$reports/getReports.php";
   static String getStudentReports = "$reports/getStudentReports.php";
   static String getReportStudent = "$reports/getReportStudent.php";

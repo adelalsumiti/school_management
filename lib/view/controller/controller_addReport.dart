@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:school_management/core/constant/colors.dart';
 import 'package:school_management/core/services/report_Service.dart';
 import 'package:school_management/data/model/report_Model.dart';
 import 'package:school_management/linkapi.dart';
@@ -18,6 +19,7 @@ abstract class AddReportController extends GetxController {
   sendReport();
   fetchReportStudentForRoleStudent();
   submitReport();
+  deleteReport(int id);
   fetchReportStudentForRoleTeacher();
   initialData();
 }
@@ -35,7 +37,8 @@ class AddReportControllerImp extends AddReportController {
   File? selectedFile;
   File? audioFile;
   late int studentIdd;
-  late int studentId;
+  late int studentIdInRoleTeacher;
+  late int studentIdInRoleStudent;
   late int teacherIdd;
   late int teacherId;
   late int classIdd;
@@ -48,23 +51,192 @@ class AddReportControllerImp extends AddReportController {
   int? userId;
   File? selectedPickFile;
   List<String> items = ['ممتاز', 'جيد', 'متوسط', 'ضعيف'];
-
-  // SharedPreferences? prefs;
-
   FlutterSoundRecorder? audioRecorder;
   String? audioFilePath;
+  // خريطة تربط أسماء السور بأرقامها
+  final Map<String, int> surahMap = {
+    'الفاتحة': 1,
+    'البقرة': 2,
+    'آل عمران': 3,
+    'النساء': 4,
+    'المائدة': 5,
+    'الأنعام': 6,
+    'الأعراف': 7,
+    'الأنفال': 8,
+    'التوبة': 9,
+    'يونس': 10,
+    'هود': 11,
+    'يوسف': 12,
+    'الرعد': 13,
+    'ابراهيم': 14,
+    'الحجر': 15,
+    'النحل': 16,
+    'الإسراء': 17,
+    'الكهف': 18,
+    'مريم': 19,
+    'طه': 20,
+    'الأنبياء': 21,
+    'الحج': 22,
+    'المؤمنون': 23,
+    'النور': 24,
+    'الفرقان': 25,
+    'الشعراء': 26,
+    'النمل': 27,
+    'القصص': 28,
+    'العنكبوت': 29,
+    'الروم': 30,
+    'لقمان': 31,
+    'السجدة': 32,
+    'الأحزاب': 33,
+    'سبإ': 34,
+    'فاطر': 35,
+    'يس': 36,
+    'الصافات': 37,
+    'ص': 38,
+    'الزمر': 39,
+    'غافر': 40,
+    'فصلت': 41,
+    'الشورى': 42,
+    'الزخرف': 43,
+    'الدخان': 44,
+    'الجاثية': 45,
+    'الأحقاف': 46,
+    'محمد': 47,
+    'الفتح': 48,
+    'الحجرات': 49,
+    'ق': 50,
+    'الذاريات': 51,
+    'الطور': 52,
+    'النجم': 53,
+    'القمر': 54,
+    'الرحمن': 55,
+    'الواقعة': 56,
+    'الحديد': 57,
+    'المجادلة': 58,
+    'الحشر': 59,
+    'الممتحنة': 60,
+    'الصف': 61,
+    'الجمعة': 62,
+    'المنافقون': 63,
+    'التغابن': 64,
+    'الطلاق': 65,
+    'التحريم': 66,
+    'الملك': 67,
+    'القلم': 68,
+    'الحاقة': 69,
+    'المعارج': 70,
+    'نوح': 71,
+    'الجن': 72,
+    'المزمل': 73,
+    'المدثر': 74,
+    'القيامة': 75,
+    'الانسان': 76,
+    'المرسلات': 77,
+    'النبأ': 78,
+    'النازعات': 79,
+    'عبس': 80,
+    'التكوير': 81,
+    'الإنفطار': 82,
+    'المطففين': 83,
+    'الإنشقاق': 84,
+    'البروج': 85,
+    'الطارق': 86,
+    'الأعلى': 87,
+    'الغاشية': 88,
+    'الفجر': 89,
+    'البلد': 90,
+    'الشمس': 91,
+    'الليل': 92,
+    'الضحى': 93,
+    'الشرح': 94,
+    'التين': 95,
+    'العلق': 96,
+    'القدر': 97,
+    'البينة': 98,
+    'الزلزلة': 99,
+    'العاديات': 100,
+    'القارعة': 101,
+    'التكاثر': 102,
+    'العصر': 103,
+    'الهمزة': 104,
+    'الفيل': 105,
+    'قريش': 106,
+    'الماعون': 107,
+    'الكوثر': 108,
+    'الكافرون': 109,
+    'النصر': 110,
+    'المسد': 111,
+    'الإخلاص': 112,
+    'الفلق': 113,
+    'الناس': 114
+  };
   //
-  // List<dynamic> reportStudent = [];
-  List<dynamic> responsev = [];
+  String getVerses(String surahName, int startVerse, int endVerse) {
+    // الحصول على رقم السورة بناءً على اسمها
+    int? surahNumber = surahMap[surahName];
+    if (surahNumber == null) {
+      return 'السورة غير موجودة';
+    }
+    String verses = '';
+    for (int i = startVerse; i <= endVerse; i++) {
+      verses += ' ${quran.getVerse(surahNumber, i)}﴿$i﴾ '; // إضافة النص لكل آية
+    }
+    return verses;
+  }
 
+  //
+  @override
+  deleteReport(int id) async {
+    isLoading = true;
+    Get.back();
+
+    update();
+    try {
+      final response = await http.post(
+        Uri.parse(AppLink.deleteReport),
+        body: {'id': id.toString()},
+      );
+
+      final data = json.decode(response.body);
+      isLoading = false;
+
+      if (response.statusCode == 200 && data['success'] == true) {
+        isLoading = false;
+        update();
+
+        Get.snackbar(
+          "نجاح",
+          'تم حذف التقرير بنجاح !',
+          backgroundColor: AppColors.backgroundIDsColor,
+          colorText: AppColors.primaryColor,
+          barBlur: 4,
+          animationDuration: const Duration(seconds: 5),
+        );
+        fetchReportStudentForRoleTeacher();
+        update();
+      } else {
+        throw Exception(data['message'] ?? 'فشل في حذف التقرير');
+      }
+    } catch (e) {
+      Get.snackbar(
+        'لايمكن الحذف',
+        'مرتبط ببيانات أخرى',
+        backgroundColor: AppColors.primaryColor,
+        colorText: AppColors.backgroundIDsColor,
+        animationDuration: const Duration(seconds: 5),
+      );
+    }
+  }
+
+//
   @override
   fetchReportStudentForRoleTeacher() async {
     isLoading = true;
     update();
     prefs = await SharedPreferences.getInstance();
-    studentId = prefs.getInt("student_id")!;
+    studentIdInRoleTeacher = prefs.getInt("student_id")!;
     final url =
-        '${AppLink.getReports}?student_id=$studentId'; // ضع الرابط الصحيح هنا
+        '${AppLink.getReports}?student_id=$studentIdInRoleTeacher'; // ضع الرابط الصحيح هنا
     final response = await http.get(Uri.parse(url));
     isLoading = false;
     update();
@@ -74,7 +246,7 @@ class AddReportControllerImp extends AddReportController {
 
       final data = json.decode(response.body);
       if (data['success']) {
-        log("studentId", error: studentId);
+        log("studentIdInRoleTeacher", error: studentIdInRoleTeacher);
         print('Data received reportStudent: $reportStudentForRoleTeacher');
         reportStudentForRoleTeacher = data['data'];
       } else {
@@ -88,15 +260,23 @@ class AddReportControllerImp extends AddReportController {
   //
   @override
   fetchReportStudentForRoleStudent() async {
+    // isLoading = true;
+
     prefs = await SharedPreferences.getInstance();
-    studentId = prefs.getInt("id")!;
+    studentIdInRoleStudent = prefs.getInt("id")!;
+    update();
     // studentId = prefs.getInt("student_id")!;
-    log("$studentId", name: 'studentId', error: studentId);
+    log("$studentIdInRoleStudent",
+        name: 'studentIdInRoleStudent', error: studentIdInRoleStudent);
     final response = await http.get(
-      Uri.parse('${AppLink.getReports}?student_id=$studentId'),
+      Uri.parse('${AppLink.getReports}?student_id=$studentIdInRoleStudent'),
     );
+    isLoading = false;
+    update();
     if (response.statusCode == 200) {
       isLoading = false;
+      update();
+
       final data = json.decode(response.body);
       if (data['success']) {
         return reportStudentForRoleStudent = data['data'];
@@ -114,8 +294,6 @@ class AddReportControllerImp extends AddReportController {
     // if (selectedAssessment != null) {
     // try {
     prefs = await SharedPreferences.getInstance();
-
-    // void submitReport() async {
     isLoading = true;
     update();
 
@@ -160,8 +338,11 @@ class AddReportControllerImp extends AddReportController {
       update();
       // Handle error
       Get.snackbar(
-        "Handle Error",
+        "حدث خطأ",
         response['message'],
+        backgroundColor: AppColors.primaryColor,
+        colorText: AppColors.backgroundIDsColor,
+        animationDuration: const Duration(seconds: 5),
       );
     }
   }
@@ -239,24 +420,18 @@ class AddReportControllerImp extends AddReportController {
     super.onInit();
     initialData();
     isLoading;
-
-    // ReportModel();
-
-    // reportModel;
   }
 
   //
   @override
   initialData() async {
-    await fetchReportStudentForRoleStudent();
-    await sendReport();
+    fetchReportStudentForRoleStudent();
     reportModel = ReportModel();
     reportService = ReportService();
     isLoading;
-    // reportModel;
-    await fetchReportStudentForRoleTeacher();
+    fetchReportStudentForRoleTeacher();
     prefs = await SharedPreferences.getInstance();
-    await submitReport();
+    submitReport();
     // SharedPreferences prefs = await SharedPreferences.getInstance();
   }
 
@@ -295,8 +470,8 @@ class AddReportControllerImp extends AddReportController {
                         int surahNumber = index + 1;
                         return DropdownMenuItem<String>(
                           value: surahNumber.toString(),
-                          child:
-                              Text('سورة ${quran.getSurahName(surahNumber)}'),
+                          child: Text(
+                              'سورة ${quran.getSurahNameArabic(surahNumber)}'),
                         );
                       },
                     ),
@@ -378,13 +553,14 @@ class AddReportControllerImp extends AddReportController {
       },
     ).then((result) async {
       if (result != null) {
-        print('السورة: ${quran.getSurahName(int.parse(result['surah']))}');
+        print(
+            'السورة: ${quran.getSurahNameArabic(int.parse(result['surah']))}');
         print('من الآية: ${result['startVerse']}');
         print('إلى الآية: ${result['endVerse']}');
       }
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString(
-          'surah', quran.getSurahName(int.parse(result['surah'])));
+          'surah', quran.getSurahNameArabic(int.parse(result['surah'])));
 
       await prefs.setInt('startVerse', result['startVerse']);
 
@@ -396,7 +572,7 @@ class AddReportControllerImp extends AddReportController {
   void printSurahs() {
     for (int i = 1; i <= 114; i++) {
       print(
-          'سورة ${quran.getSurahName(i)} - عدد الآيات: ${quran.getVerseCount(i)}');
+          'سورة ${quran.getSurahNameArabic(i)} - عدد الآيات: ${quran.getVerseCount(i)}');
     }
   }
 //

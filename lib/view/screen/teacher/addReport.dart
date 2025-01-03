@@ -1,32 +1,14 @@
-// import 'dart:convert';
-// import 'dart:developer';
-// import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-// import 'package:http/http.dart' as http;
-// import 'package:school_management/linkapi.dart';
-// import 'package:flutter_sound/flutter_sound.dart';
-// import 'package:permission_handler/permission_handler.dart';
-// import 'package:file_picker/file_picker.dart';
 import 'package:school_management/view/controller/controller_addReport.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:quran/quran.dart' as quran;
 
-class AddReportPage extends StatefulWidget {
-  // final int studentId;
-  // final int teacherId;
-
+class AddReportPage extends StatelessWidget {
   const AddReportPage({
     super.key,
-    // required this.studentId, required this.teacherId
   });
 
-  @override
-  _AddReportPageState createState() => _AddReportPageState();
-}
-
-class _AddReportPageState extends State<AddReportPage> {
   @override
   Widget build(BuildContext context) {
     Get.put(AddReportControllerImp());

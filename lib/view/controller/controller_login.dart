@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:school_management/core/constant/colors.dart';
 import 'package:school_management/core/services/services.dart';
 import 'package:school_management/linkApi.dart';
 import 'package:school_management/view/screen/home/homepage.dart';
@@ -36,7 +37,7 @@ class LoginControllerImp extends LoginController {
     // });
 
     // final apiUrl = AppLink.login; // رابط API
-    isLoading == true;
+    isLoading = true;
     update();
     //  لتسجيل الدخول
     final response = await http.post(Uri.parse(AppLink.login),
@@ -61,6 +62,7 @@ class LoginControllerImp extends LoginController {
 
       if (data['success']) {
         isLoading = false;
+        update();
 
         userId = data['id'];
         // حفظ البريد الإلكتروني في SharedPreferences
@@ -88,7 +90,13 @@ class LoginControllerImp extends LoginController {
         isLoading = false;
 
         // عرض رسالة خطأ
-        Get.snackbar('خطأ', data['message']);
+        Get.snackbar(
+          'خطأ',
+          data['message'],
+          backgroundColor: AppColors.primaryColor,
+          colorText: AppColors.backgroundIDsColor,
+          animationDuration: const Duration(seconds: 5),
+        );
       }
     } catch (e) {
       isLoading = false;
