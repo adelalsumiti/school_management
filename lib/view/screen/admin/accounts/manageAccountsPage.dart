@@ -3,22 +3,9 @@ import 'package:get/get.dart';
 import 'package:school_management/core/constant/colors.dart';
 import 'package:school_management/view/controller/controller_account.dart';
 import 'package:school_management/view/widgets/accounts/accountsList.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
 
-class AccountsPage extends StatefulWidget {
+class AccountsPage extends StatelessWidget {
   const AccountsPage({super.key});
-
-  @override
-  State<AccountsPage> createState() => _AccountsPageState();
-}
-
-class _AccountsPageState extends State<AccountsPage> {
-  // String? selectedCategory;
-
-  // String selectedCategory =
-  // ('admin' 'teacher' 'father' 'student'); // القسم الافتراضي
-  // String selectedCategory; // القسم الافتراضي
-  // final controller = Get.put(ManageAccountsControllerImp());
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +15,6 @@ class _AccountsPageState extends State<AccountsPage> {
     // });
 
     return Scaffold(
-        // bottomNavigationBar:
         appBar: AppBar(
           title: const Text('إدارة الحسابات'),
         ),
@@ -127,55 +113,6 @@ class _AccountsPageState extends State<AccountsPage> {
                   ),
                 ),
               ),
-              //   Expanded(
-              //     child: Container(
-              //       padding: const EdgeInsets.only(bottom: 10, right: 3, left: 3),
-              //       decoration: BoxDecoration(
-              //         border:
-              //             Border(top: BorderSide(color: Colors.grey.shade300)),
-              //       ),
-              //       child: Row(
-              //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              //         children: [
-              //           BottomSheetButton(
-              //             label: 'الإدارة',
-              //             isSelected: controller.selectedCategoryy == 'admin',
-              //             onTap: () async {
-              //               controller.changeCategory("admin");
-              //             },
-              //           ),
-              //           BottomSheetButton(
-              //             label: 'المعلمين',
-              //             isSelected: controller.selectedCategoryy == "teacher",
-              //             onTap: () async {
-              //               controller.changeCategory("teacher");
-              //             },
-              //           ),
-              //           BottomSheetButton(
-              //             label: 'الآباء',
-              //             isSelected: controller.selectedCategoryy == 'father',
-              //             onTap: () async {
-              //               controller.changeCategory("father");
-              //             },
-              //           ),
-              //           BottomSheetButton(
-              //             label: 'الطلاب',
-              //             isSelected: controller.selectedCategoryy == 'student',
-              //             onTap: () async {
-              //               controller.changeCategory("student");
-              //             },
-              //           ),
-              //           BottomSheetButton(
-              //             label: 'المحظورة',
-              //             isSelected: controller.selectedCategoryy == 'blocked',
-              //             onTap: () async {
-              //               controller.changeCategory("blocked");
-              //             },
-              //           ),
-              //         ],
-              //       ),
-              //     ),
-              //   ),
             ],
           ),
         ));

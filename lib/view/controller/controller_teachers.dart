@@ -1,66 +1,81 @@
-import 'dart:convert';
 import 'dart:developer';
-
 import 'package:get/get.dart';
-import 'package:school_management/linkapi.dart';
+import 'package:school_management/core/class/statusrequest.dart';
+import 'package:school_management/core/funcations/handlinfdatacontroller.dart';
+import 'package:school_management/core/services/report_Service.dart';
+import 'package:school_management/data/dataSource/remote/home/home_data.dart';
+import 'package:school_management/data/model/report_Model.dart';
+// import 'package:school_management/core/services/services.dart';
+// import 'package:school_management/data/dataSource/studentsWithTeacher_data.dart';
+import 'package:school_management/data/model/teacherStudentModel.dart';
+// import 'package:school_management/linkapi.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
+// import 'package:http/http.dart' as http;
 
-abstract class TeachersController extends GetxController {
+abstract class RoleTeachersController extends GetxController {
   fetchTeacherStudents();
   initialData();
 }
 
-class TeachersControllerImp extends TeachersController {
+class RoleTeachersControllerImp extends RoleTeachersController {
+  HomeData homeData = HomeData(Get.find());
+  ReportService reportService = Get.find();
+  late SharedPreferences prefs;
+  late StatusRequest statusRequest;
+
+  // MyServices myServices = Get.find();
+  // List<CategoriesModel> categories = [];
+  List<TeacherStudentModel> teacherStudentdata = [];
   // late Future<List<Map<String, dynamic>>> teacherStudents;
   List<dynamic> teacherStudents = [];
   List<dynamic> responsev = [];
   bool isLoading = true;
-  SharedPreferences? prefs;
-
   int? userId;
   int? studentId;
   int? classId;
+  ReportModel reportModel = ReportModel();
 
   @override
   fetchTeacherStudents() async {
-    isLoading = true;
+    statusRequest = StatusRequest.loading;
+    // try {
     update();
-
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs = await SharedPreferences.getInstance();
     userId = prefs.getInt("id");
-    final url =
-        '${AppLink.fetchTeacherStudents}?teacher_id=$userId'; // ضع الرابط الصحيح هنا
-    final response = await http.get(Uri.parse(url));
-
-    if (response.statusCode == 200) {
-      isLoading = false;
-      update();
-
-      final data = json.decode(response.body);
-      if (data['success']) {
-        teacherStudents = data['data'];
+    var response = await homeData.getDataTeachereStudents(userId);
+    statusRequest = await handlingData(response);
+    if (StatusRequest.success == statusRequest) {
+      if (await response['success']) {
+        response is Map<String, dynamic>;
+        teacherStudents = await response['data'];
+        update();
         log("studentId", error: studentId);
         print('Data received teacherStudents: $teacherStudents');
       } else {
-        throw Exception(data['message']);
+        statusRequest = StatusRequest.failure;
+        throw Exception(await response['message']);
       }
-    } else {
-      throw Exception('Failed to load teacher students');
     }
+    // } catch (e) {
+    //   throw Exception('Not Found Internet PlZ Connect The Internet $e ');
+    // }
   }
 
   //
+
   @override
-  void onInit() {
+  void onInit() async {
+    statusRequest = StatusRequest.none;
     super.onInit();
     initialData();
     isLoading;
   }
 
   @override
-  initialData() async {
+  initialData() {
+    statusRequest = StatusRequest.none;
     fetchTeacherStudents();
   }
+
   //
 }

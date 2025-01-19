@@ -81,6 +81,9 @@ class ReportModel {
   String? assessment;
   String? note;
   String? surah;
+  String? surahReview;
+  int? startVerseReview;
+  int? endVerseReview;
   int? startVerse;
   int? endVerse;
   File? filePath;
@@ -95,6 +98,9 @@ class ReportModel {
     this.date,
     this.assessment,
     this.note,
+    this.surahReview,
+    this.startVerseReview,
+    this.endVerseReview,
     this.surah,
     this.startVerse,
     this.endVerse,
@@ -112,6 +118,9 @@ class ReportModel {
       date: json['date'],
       assessment: json['assessment'],
       note: json['note'],
+      surahReview: json['surahReview']!,
+      startVerseReview: json['startVerseReview']!,
+      endVerseReview: json['endVerseReview']!,
       surah: json['surah']!,
       startVerse: json['startVerse']!,
       endVerse: json['endVerse']!,
@@ -128,6 +137,9 @@ class ReportModel {
       'date': date,
       'assessment': assessment,
       'note': note,
+      'surahReview': surahReview,
+      'startVerseReview': startVerseReview,
+      'endVerseReview': endVerseReview,
       'surah': surah,
       'startVerse': startVerse,
       'endVerse': endVerse,

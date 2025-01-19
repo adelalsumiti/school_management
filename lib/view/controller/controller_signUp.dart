@@ -1,96 +1,66 @@
-import 'dart:convert';
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:school_management/core/class/statusrequest.dart';
 import 'package:school_management/core/constant/colors.dart';
-import 'package:school_management/linkApi.dart';
-import 'package:http/http.dart' as http;
+import 'package:school_management/core/funcations/handlinfdatacontroller.dart';
+import 'package:school_management/core/services/services.dart';
+import 'package:school_management/data/dataSource/remote/auth/signUp_data.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 abstract class SignUpController extends GetxController {
   signUp();
-  initialData();
 }
 
 class SignUpControllerImp extends SignUpController {
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final TextEditingController phoneNumberController = TextEditingController();
-  final TextEditingController addressConteroller = TextEditingController();
+  late TextEditingController nameController;
+  late TextEditingController emailController;
+  late TextEditingController passwordController;
+  late TextEditingController phoneNumberController;
+  late TextEditingController addressConteroller;
+  SignUpData signUpData = SignUpData(Get.find());
   late String role = 'student'; // الدور الافتراضي
   BuildContext? context;
-
-  var apiUrl = AppLink.createUser; // رابط API
-  // var data;
-
-  bool isLoading = false;
+  StatusRequest statusRequest = StatusRequest.none;
+  late SharedPreferences prefs;
+  MyServices myServices = Get.find();
 
   @override
   signUp() async {
-    // setState(() {
-    isLoading = true;
-    // update();
-    // isLoading = false;
+    statusRequest = StatusRequest.loading;
     update();
+    var response = await signUpData.signUp(
+        emailController.text,
+        passwordController.text,
+        nameController.text,
+        phoneNumberController.text,
+        addressConteroller.text,
+        role);
+    statusRequest = handlingData(response);
 
-    // });
-
-    var response = await http.post(
-      Uri.parse(apiUrl),
-      headers: {"Content-Type": "application/json"},
-      body: json.encode({
-        "name": nameController.text.trim(),
-        "email": emailController.text.trim(),
-        "password": passwordController.text.trim(),
-        "phone_number": phoneNumberController.text.trim(),
-        "address": addressConteroller.text.trim(),
-        "role": role,
-      }),
-    );
-    // setState(() {
-    // isLoading = false;
-    // update();
-
-    // });
-
-    if (response.statusCode == 200) {
-      isLoading = false;
+    //
+    if (StatusRequest.success == statusRequest) {
       update();
-      var data = json.decode(response.body);
-      if (data['success']) {
-        //
-        log("${data['message']}", error: "success php");
-        //
+      if (response['success']) {
+        log("${response['message']}", error: "success php");
         Get.back();
-
         Get.snackbar(
           'نجاح',
-          data['message'],
+          response['message'],
           backgroundColor: AppColors.primaryColor,
           colorText: AppColors.backgroundIDsColor,
           animationDuration: const Duration(seconds: 5),
         );
       } else {
-        // log("$response", error: " faield php");
-        // log("${data['message']}", error: "php");
-
-        // ScaffoldMessenger.of(context).showSnackBar(
-        // SnackBar(content: Text(data['message']));
-        // GetSnackBar(messageText: Text(data['message']));
-
         Get.snackbar(
           'خطأ',
-          data['message'],
+          response['message'],
           backgroundColor: AppColors.primaryColor,
           colorText: AppColors.backgroundIDsColor,
           animationDuration: const Duration(seconds: 5),
         );
-
-        // );
       }
     } else {
-      // log("${data['message']}", error: "php");
       log("$response", error: " faield php");
 
       Get.snackbar(
@@ -104,22 +74,39 @@ class SignUpControllerImp extends SignUpController {
   }
 
 //
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    addressConteroller.dispose();
+    nameController.dispose();
+    phoneNumberController.dispose();
+    super.dispose();
+  }
+
 //
   @override
-  void onInit() {
+  void onInit() async {
+    statusRequest = StatusRequest.none;
+    emailController = TextEditingController();
+    passwordController = TextEditingController();
+    addressConteroller = TextEditingController();
+    nameController = TextEditingController();
+    phoneNumberController = TextEditingController();
+
     super.onInit();
-    // isLoading;
-    // update();
 
-    initialData();
+    update();
+    prefs = await SharedPreferences.getInstance();
   }
 
-  @override
-  initialData() async {
-    // isLoading;
-    // update();
+  // @override
+  // initialData() async {
+  //   // isLoading;
+  //   // update();
 
-    await signUp();
-  }
+  //   await signUp();
+  // }
   //
 }

@@ -2,6 +2,7 @@ class AppLink {
   // ======================== Server ==============================================//
 
   static String server = "https://adenelectricity.com/school_management";
+  static String upload = '$server/upload/';
 
   //  ======================= Images =============================================//
 

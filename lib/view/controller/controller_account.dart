@@ -1,113 +1,139 @@
-import 'dart:convert';
-
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:school_management/linkapi.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:school_management/core/class/statusrequest.dart';
+import 'package:school_management/core/constant/colors.dart';
+import 'package:school_management/core/funcations/handlinfdatacontroller.dart';
+import 'package:school_management/data/dataSource/remote/roleAdmin/account_data.dart';
 
 abstract class ManageAccountsController extends GetxController {
   // final String category;
 
   fetchAccounts();
-  // updateAccounts();
+  updateAccount(int accountId, String action);
   initialData();
 }
 
 class ManageAccountsControllerImp extends ManageAccountsController {
   // String category;
-
-  // ManageAccountsControllerImp({required this.category});
-
-  List<dynamic> accounts = [];
-  bool isLoading = true;
+  List accounts = [];
   // String? selectedCategoryy;
   String selectedCategoryy = "admin";
+  AccountsData accountsData = AccountsData(Get.find());
+  late StatusRequest statusRequest;
   // String selectedCategoryy =
   //     ("admin" 'teacher' 'father' 'student'); // القسم الافتراضي
 
   @override
   fetchAccounts() async {
-    isLoading = true; // تعيين حالة التحميل
+    // isLoading = true; // تعيين حالة التحميل
+    statusRequest = StatusRequest.loading;
     update();
 
-    try {
-      var response = await http.get(
-        Uri.parse('${AppLink.getAccounts}?category=$selectedCategoryy'),
-      );
+    // try {
+    var response = await accountsData.getDataAccounts(selectedCategoryy);
+    statusRequest = handlingData(response);
+    update();
 
-      if (response.statusCode == 200) {
-        var data = json.decode(response.body);
-        debugPrint('Response data: $data'); // طباعة البيانات للمتابعة
-
-        if (data['success']) {
-          accounts = data['accounts'] ?? [];
-          data = await SharedPreferences.getInstance();
-          data = accounts;
-        } else {
-          accounts = [];
-          throw Exception(data['message']);
-        }
-      } else {
-        throw Exception('Failed to fetch accounts');
-      }
-    } catch (e) {
-      debugPrint('Error fetching accounts: $e');
-      Get.snackbar(
-        'Error',
-        'خطأ أثناء جلب الحسابات: $e',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-    } finally {
-      isLoading = false; // إنهاء حالة التحميل
+    if (StatusRequest.success == statusRequest) {
+      // if (response.statusCode == 200) {
+      // var data = json.decode(response.body);
+      // response is Map<String, dynamic>;
       update();
+      debugPrint('Response data: $response'); // طباعة البيانات للمتابعة
+      // log(
+      //   "accounttt ====> "
+      //   "${response['accounts']['id']}",
+      // );
+
+      if (response['success'] == true) {
+        accounts = response['accounts'] ?? [];
+        log("accounttt ====> ");
+        update();
+        // response = await SharedPreferences.getInstance();
+        // response = accounts;
+        // update();
+      } else if (response['success'] == false) {
+        statusRequest = StatusRequest.none;
+        update();
+
+        accounts = [];
+        throw Exception(response['message']);
+      }
+      // }
+      // else {
+      //   statusRequest = StatusRequest.serverfailure;
+      //   update();
+
+      //   throw Exception('Failed to fetch accounts');
+      // }
+    }
+    // catch (e) {
+    //   statusRequest = StatusRequest.serverfailure;
+
+    //   debugPrint('Error fetching accounts: ');
+    //   // Get.snackbar(
+    //   //   'Error',
+    //   //   'خطأ أثناء جلب الحسابات: $e',
+    //   //   snackPosition: SnackPosition.BOTTOM,
+    //   // );
+    // } finally {
+    //   statusRequest = StatusRequest.none;
+    // update();
+    // }
+  }
+  //
+
+  @override
+  updateAccount(int accountId, String action) async {
+    statusRequest = StatusRequest.loading;
+    update();
+    var response = await accountsData.updateAccount(accountId, action);
+    statusRequest = await handlingData(response);
+    if (StatusRequest.success == statusRequest) {
+      // if (response is Map<String, dynamic>) {
+      if (response['success']) {
+        Get.snackbar(
+          "نجاح",
+          " تم تحديث الحساب بنجاح",
+          backgroundColor: AppColors.primaryColor,
+          colorText: AppColors.backgroundIDsColor,
+          barBlur: 4,
+          animationDuration: const Duration(seconds: 5),
+        );
+        update();
+
+        changeCategory("admin");
+
+        update();
+
+        statusRequest = StatusRequest.loading;
+        update();
+      }
+      // }
     }
   }
 
+  //
+
   @override
-  void onInit() {
+  void onInit() async {
+    statusRequest = StatusRequest.none;
+
+    await initialData();
     super.onInit();
-    initialData();
   }
 
   @override
-  initialData() async {
-    await fetchAccounts();
-    isLoading = true;
+  initialData() {
+    statusRequest = StatusRequest.none;
+
+    fetchAccounts();
   }
 
   // تغيير الفئة الحالية وجلب البيانات الجديدة
   void changeCategory(String category) {
     selectedCategoryy = category;
     fetchAccounts();
-  }
-
-  Future<void> updateAccount(String accountId, String action) async {
-    isLoading = true;
-    try {
-      final response = await http.post(
-        Uri.parse(AppLink.updateAccountStatus),
-        body: {
-          'accountId': accountId,
-          'action': action, // "accept" أو "delete" أو "block"
-        },
-      );
-
-      final data = json.decode(response.body);
-      if (data['success']) {
-        isLoading = false;
-        // ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(data['message']));
-        // );
-        // _fetchAccounts(); // تحديث القائمة
-      } else {
-        throw Exception(data['message']);
-      }
-    } catch (e) {
-      // debugPrint('Error updating account: $e');
-      // ScaffoldMessenger.of(context).showSnackBar(
-      // SnackBar(content: Text('خطأ أثناء تحديث الحساب: $e'));
-      // );
-    }
   }
 }

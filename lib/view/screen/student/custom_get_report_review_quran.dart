@@ -3,9 +3,9 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:school_management/view/controller/controller_addReport.dart';
 
-class StudentReportQuranPage extends StatelessWidget {
-  final List<Map<String, dynamic>> reports;
-  const StudentReportQuranPage({super.key, required this.reports});
+class StudentReportReviewQuranPage extends StatelessWidget {
+  final List<Map<String, dynamic>> reportsReview;
+  const StudentReportReviewQuranPage({super.key, required this.reportsReview});
   @override
   Widget build(BuildContext context) {
     Get.put(AddReportControllerImp());
@@ -21,15 +21,15 @@ class StudentReportQuranPage extends StatelessWidget {
           Expanded(
             child: ListView.builder(
               shrinkWrap: true,
-              itemCount: reports.length,
+              itemCount: reportsReview.length,
               itemBuilder: (context, index) {
-                final report = reports[index];
-                final String surahName = report['surah'];
-                final int startVerse = report['startVerse'];
-                final int endVerse = report['endVerse'];
+                final report = reportsReview[index];
+                final String surahReviewName = report['surahReview'];
+                final int startVerseReview = report['startVerseReview'];
+                final int endVerseReview = report['endVerseReview'];
 
-                final verses =
-                    controller.getVerses(surahName, startVerse, endVerse);
+                final verses = controller.getVerses(
+                    surahReviewName, startVerseReview, endVerseReview);
 
                 return Card(
                   margin: const EdgeInsets.all(8.0),
@@ -39,13 +39,13 @@ class StudentReportQuranPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'سورة : $surahName',
+                          'سورة : $surahReviewName',
                           style: const TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 18),
                         ),
                         const SizedBox(height: 8.0),
                         Text(
-                          'الآيات: $startVerse - $endVerse',
+                          'الآيات: $startVerseReview - $endVerseReview',
                           style: const TextStyle(fontSize: 16),
                         ),
                         const SizedBox(height: 8.0),

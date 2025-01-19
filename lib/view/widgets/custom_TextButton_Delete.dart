@@ -21,21 +21,23 @@ class CustomTextButtonDelete extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 35,
-      width: 110,
+      // height: 35,
+      // width: 110,
       // padding: const EdgeInsets.only(
       //   bottom: 5,
       //   top: 5,
       // ),
-      // margin: const EdgeInsets.only(
-      //   bottom: 15,
-      //   // top: 5,
-      // ),
+      margin: const EdgeInsets.only(
+        // bottom: 15,
+        bottom: 5,
+        left: 10,
+        top: 5,
+      ),
       decoration: BoxDecoration(
         // shape: BoxShape.circle,
         borderRadius: BorderRadius.circular(15),
         boxShadow: const [BoxShadow(spreadRadius: 0.5, blurRadius: 4)],
-        color: AppColors.primaryColor,
+        color: AppColors.actionColor,
         // border: Border.symmetric(
         //     horizontal: BorderSide(), vertical: BorderSide())
       ),
@@ -43,7 +45,9 @@ class CustomTextButtonDelete extends StatelessWidget {
         child: Text(
           nameButton!,
           style: const TextStyle(
-              color: AppColors.darker, fontWeight: FontWeight.bold),
+              fontSize: 17,
+              color: AppColors.backgroundIDsColor,
+              fontWeight: FontWeight.bold),
         ),
         // color: Colors.red[700],
         onPressed: () {

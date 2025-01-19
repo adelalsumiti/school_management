@@ -1,74 +1,55 @@
-import 'dart:convert';
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:school_management/core/class/statusrequest.dart';
 import 'package:school_management/core/constant/colors.dart';
+import 'package:school_management/core/constant/routes.dart';
+import 'package:school_management/core/funcations/handlinfdatacontroller.dart';
 import 'package:school_management/core/services/services.dart';
-import 'package:school_management/linkApi.dart';
+import 'package:school_management/data/dataSource/remote/auth/login_data.dart';
 import 'package:school_management/view/screen/home/homepage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
 
 abstract class LoginController extends GetxController {
   login();
-  initialData();
+  goToSignUp();
 }
 
 class LoginControllerImp extends LoginController {
-  // String email, String name, String rolee, String password
-  TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
-  bool isLoading = false;
+  LoginData loginData = LoginData(Get.find());
+  StatusRequest statusRequest = StatusRequest.none;
+  GlobalKey<FormState> formstate = GlobalKey<FormState>();
+  late TextEditingController emailController;
+  late TextEditingController passwordController;
   String? userName;
   int? userId;
   String? role;
+  late SharedPreferences prefs;
   MyServices myServices = Get.find();
-
-  // String? apiUrl;
 
   //
   @override
   login() async {
-    // try {
-    // طلب API
-    // setState(() {
-
-    // });
-
-    // final apiUrl = AppLink.login; // رابط API
-    isLoading = true;
-    update();
-    //  لتسجيل الدخول
-    final response = await http.post(Uri.parse(AppLink.login),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(
-          {
-            'id': userId,
-            'email': emailController.text.trim(),
-            'name': userName,
-            'role': role,
-            'password': passwordController.text.trim(),
-            // 'role': role,
-          },
-        ));
-    // isLoading = false;
+    // if (formstate.currentState!.validate()) {
+    statusRequest = StatusRequest.loading;
     update();
 
-    try {
-      isLoading = true;
-
-      var data = json.decode(response.body);
-
-      if (data['success']) {
-        isLoading = false;
-        update();
-
-        userId = data['id'];
+    var response = await loginData.login(
+      emailController.text,
+      passwordController.text,
+    );
+    statusRequest = handlingData(response);
+    update();
+    if (StatusRequest.success == statusRequest) {
+      if (response['success']) {
+        userId = response['id'];
         // حفظ البريد الإلكتروني في SharedPreferences
-        userName = data['name']; // الاسم القادم من API
-        role = data['role']; // الاسم القادم من API
-        SharedPreferences prefs = await SharedPreferences.getInstance();
+        userName = response['name']; // الاسم القادم من API
+        role = response['role']; // الاسم القادم من API
+        update();
+        // SharedPreferences
+        prefs = await SharedPreferences.getInstance();
+        update();
         log("$userId", name: 'userId', error: userId);
         log("$role", name: 'role', error: role);
         log("$userName", name: 'userName', error: userName);
@@ -79,47 +60,55 @@ class LoginControllerImp extends LoginController {
         await prefs.setInt('id', userId!);
 
         await prefs.setString('role', role!);
+        update();
+
         log("$prefs", name: 'predfs', error: prefs);
 
         myServices.sharedPreferences.setString("homePage", "2");
+        update();
 
         // الانتقال إلى الصفحة الرئيسية
-
         Get.to(() => const HomePage());
+        update();
+        //
+        statusRequest = StatusRequest.none;
+        update();
       } else {
-        isLoading = false;
-
+        statusRequest = StatusRequest.none;
         // عرض رسالة خطأ
         Get.snackbar(
           'خطأ',
-          data['message'],
+          response['message'],
           backgroundColor: AppColors.primaryColor,
           colorText: AppColors.backgroundIDsColor,
           animationDuration: const Duration(seconds: 5),
         );
       }
-    } catch (e) {
-      isLoading = false;
-
-      debugPrint('Error: $e');
+      update();
     }
+    update();
   }
 
   //
   @override
   void onInit() async {
+    emailController = TextEditingController();
+    passwordController = TextEditingController();
     super.onInit();
-    // isLoading;
-    // update();
-
-    await initialData();
+    statusRequest = StatusRequest.none;
+    update();
+    prefs = await SharedPreferences.getInstance();
   }
 
   @override
-  initialData() async {
-    // isLoading;
-    // update();
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
 
-    await login();
+  @override
+  goToSignUp() {
+    Get.toNamed(AppRoute.signUpPage);
   }
 }

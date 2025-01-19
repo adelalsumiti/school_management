@@ -160,146 +160,74 @@
 
 //
 // AddTeacherToClassPage
-//
-import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
-import 'package:school_management/linkApi.dart';
+import 'package:school_management/core/class/handlingdataview.dart';
+import 'package:school_management/view/controller/roleAdmin_Teachers/controller_roleAdmin_Teachers.dart';
 
-class AddTeacherPage extends StatefulWidget {
+class AddTeacherPage extends StatelessWidget {
   const AddTeacherPage({super.key});
 
   @override
-  State<AddTeacherPage> createState() => _AddTeacherPageState();
-}
-
-class _AddTeacherPageState extends State<AddTeacherPage> {
-  List<dynamic> teachers = [];
-  List<dynamic> classes = [];
-  String? selectedTeacher;
-  String? selectedClass;
-  bool isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    fetchTeachersAndClasses();
-  }
-
-  Future<void> fetchTeachersAndClasses() async {
-    // جلب المعلمين
-    final teacherResponse = await http.get(Uri.parse(AppLink.getTeachers));
-    // جلب الصفوف
-    final classResponse = await http.get(Uri.parse(AppLink.getClasses));
-
-    if (teacherResponse.statusCode == 200 && classResponse.statusCode == 200) {
-      final teacherData = json.decode(teacherResponse.body);
-      final classData = json.decode(classResponse.body);
-
-      if (teacherData['success'] && classData['success']) {
-        setState(() {
-          teachers = teacherData['teachers'];
-          classes = classData['classes'];
-          isLoading = false;
-        });
-      }
-    }
-  }
-
-  Future<void> addTeacherToClass() async {
-    // isLoading = true;
-    if (selectedTeacher == null || selectedClass == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى اختيار معلم وصف.')),
-      );
-      return;
-    }
-    setState(() {
-      isLoading = true;
-    });
-
-    final response = await http.post(
-      Uri.parse(AppLink.addTeacherToClass),
-      body: {
-        'teacher_id': selectedTeacher,
-        'class_id': selectedClass,
-      },
-    );
-
-    final data = json.decode(response.body);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(data['message'])),
-    );
-
-    if (data['success']) {
-      // إعادة تهيئة الحقول بعد نجاح الإضافة
-      setState(() {
-        isLoading = false;
-
-        selectedTeacher = null;
-        selectedClass = null;
-        Get.back();
-      });
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-
-      // Get.back();
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    Get.put(TeachersControllerImp());
     return Scaffold(
-      appBar: AppBar(title: const Text('إضافة معلم إلى صف')),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                // اختيار المعلم
-                DropdownButtonFormField<String>(
-                  value: selectedTeacher,
-                  items: teachers.map<DropdownMenuItem<String>>((teacher) {
-                    return DropdownMenuItem<String>(
-                      value: teacher['id'].toString(),
-                      child: Text(teacher['name']),
-                    );
-                  }).toList(),
-                  onChanged: (value) => setState(() => selectedTeacher = value),
-                  decoration: const InputDecoration(
-                    labelText: 'اختر المعلم',
-                    contentPadding: EdgeInsets.all(10),
+        appBar: AppBar(title: const Text('إضافة معلم إلى صف')),
+        body: GetBuilder<TeachersControllerImp>(
+            builder: (controller) => HandlingDataView(
+                  statusRequest: controller.statusRequest,
+                  widget: Column(
+                    children: [
+                      // اختيار المعلم
+                      DropdownButtonFormField<String>(
+                        value: controller.selectedTeacher,
+                        items: controller.teachers
+                            .map<DropdownMenuItem<String>>((teacher) {
+                          return DropdownMenuItem<String>(
+                            value: teacher['id'].toString(),
+                            child: Text(teacher['name'] ?? ""),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          controller.selectedTeacher = value;
+                          controller.update();
+                        },
+                        decoration: const InputDecoration(
+                          labelText: 'اختر المعلم',
+                          contentPadding: EdgeInsets.all(10),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      // اختيار الصف
+                      DropdownButtonFormField<String>(
+                        value: controller.selectedClass,
+                        items: controller.classes
+                            .map<DropdownMenuItem<String>>((classItem) {
+                          return DropdownMenuItem<String>(
+                            value: classItem['id'].toString(),
+                            child: Text(classItem['className']),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          controller.selectedClass = value;
+                          controller.update();
+                        },
+                        decoration: const InputDecoration(
+                          labelText: 'اختر الصف',
+                          contentPadding: EdgeInsets.all(10),
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      // زر الحفظ
+                      ElevatedButton(
+                        onPressed: () async {
+                          await controller.addTeacherToClass();
+                        },
+                        child: const Text('حفظ'),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 20),
-                // اختيار الصف
-                DropdownButtonFormField<String>(
-                  value: selectedClass,
-                  items: classes.map<DropdownMenuItem<String>>((classItem) {
-                    return DropdownMenuItem<String>(
-                      value: classItem['id'].toString(),
-                      child: Text(classItem['className']),
-                    );
-                  }).toList(),
-                  onChanged: (value) => setState(() => selectedClass = value),
-                  decoration: const InputDecoration(
-                    labelText: 'اختر الصف',
-                    contentPadding: EdgeInsets.all(10),
-                  ),
-                ),
-                const SizedBox(height: 30),
-                // زر الحفظ
-                ElevatedButton(
-                  onPressed: () {
-                    addTeacherToClass();
-                  },
-                  child: const Text('حفظ'),
-                ),
-              ],
-            ),
-    );
+                )));
   }
 }

@@ -42,14 +42,12 @@ List<GetPage<dynamic>>? routes = [
   //  // Teacher
 
   GetPage(name: AppRoute.addTeacherPage, page: () => const AddTeacherPage()),
-  GetPage(
-      name: AppRoute.editTeacherPage,
-      page: () => const EditTeacherPage(
-          // teacher: {},
-          )),
-  GetPage(
-      name: AppRoute.manageTeachersPage,
-      page: () => const ManageTeachersPage()),
+  // GetPage(
+  //     name: AppRoute.editTeacherPage,
+  //     page: () => const EditTeacherPage(
+  //         // teacher: {},
+  //         )),
+  GetPage(name: AppRoute.manageTeachersPage, page: () => ManageTeachersPage()),
 
   // =====Account Teacher ======
   GetPage(
@@ -58,10 +56,9 @@ List<GetPage<dynamic>>? routes = [
   GetPage(
       name: AppRoute.studentDetailesPage,
       page: () => const StudentDetailsPage()),
-  GetPage(name: AppRoute.addReportPage, page: () => const AddReportPage()),
+  GetPage(name: AppRoute.addReportPage, page: () => AddReportPage()),
   GetPage(name: AppRoute.detailReport, page: () => DetailReport()),
-  GetPage(
-      name: AppRoute.manageParentsPage, page: () => const ManageParentsPage()),
+  GetPage(name: AppRoute.manageParentsPage, page: () => ManageParentsPage()),
   GetPage(name: AppRoute.addParentPage, page: () => const AddParentPage()),
   GetPage(
       name: AppRoute.teacherStudentsPage,
@@ -69,8 +66,7 @@ List<GetPage<dynamic>>? routes = [
 
   //  // Classes ==========
 
-  GetPage(
-      name: AppRoute.manageClassesPage, page: () => const ManageClassesPage()),
+  GetPage(name: AppRoute.manageClassesPage, page: () => ManageClassesPage()),
   GetPage(name: AppRoute.editClassPage, page: () => const EditClassPage()),
 
   //  // Students ============
@@ -80,9 +76,7 @@ List<GetPage<dynamic>>? routes = [
       page: () => const StudentPerformance()),
   GetPage(
       name: AppRoute.viewPerformancePage, page: () => const ViewPerformance()),
-  GetPage(
-      name: AppRoute.manageStudentsPage,
-      page: () => const ManageStudentsPage()),
+  GetPage(name: AppRoute.manageStudentsPage, page: () => ManageStudentsPage()),
   GetPage(name: AppRoute.addStudentPage, page: () => const AddStudentPage()),
   GetPage(name: AppRoute.editStudentPage, page: () => const EditStudentPage()),
   GetPage(name: AppRoute.studentReportsPage, page: () => StudentReportsPage()),

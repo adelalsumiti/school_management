@@ -1,14 +1,18 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+// import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:get/get.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:school_management/core/class/statusrequest.dart';
+// import 'package:permission_handler/permission_handler.dart';
 import 'package:school_management/core/constant/colors.dart';
+import 'package:school_management/core/funcations/handlinfdatacontroller.dart';
 import 'package:school_management/core/services/report_Service.dart';
+import 'package:school_management/data/dataSource/remote/roleTeacher/report_data.dart';
 import 'package:school_management/data/model/report_Model.dart';
 import 'package:school_management/linkapi.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,7 +20,7 @@ import 'package:http/http.dart' as http;
 import 'package:quran/quran.dart' as quran;
 
 abstract class AddReportController extends GetxController {
-  sendReport();
+  // sendReport();
   fetchReportStudentForRoleStudent();
   submitReport();
   deleteReport(int id);
@@ -25,6 +29,7 @@ abstract class AddReportController extends GetxController {
 }
 
 class AddReportControllerImp extends AddReportController {
+  ReportData reportData = ReportData(Get.find());
   ReportService reportService = Get.find();
   late SharedPreferences prefs;
   // = await SharedPreferences.getInstance();
@@ -32,11 +37,14 @@ class AddReportControllerImp extends AddReportController {
   ReportModel reportModel = ReportModel();
   String? selectedAssessment;
   String? selectedSurah;
+  String? selectedSurahReview;
   bool isLoading = true;
   TextEditingController noteController = TextEditingController();
   File? selectedFile;
-  File? audioFile;
+  // File? audioFile;
+  // int? reportId;
   late int studentIdd;
+  late int reportId;
   late int studentIdInRoleTeacher;
   late int studentIdInRoleStudent;
   late int teacherIdd;
@@ -45,6 +53,10 @@ class AddReportControllerImp extends AddReportController {
   late int classId;
   late int startVersee;
   late int endVersee;
+  late int startVerseReview;
+  late int endVerseReview;
+  late StatusRequest statusRequest;
+
   List<dynamic> reportStudentForRoleTeacher = [];
   List<dynamic> reportStudentForRoleStudent = [];
   // List<Map<String, dynamic>> response = [];
@@ -52,7 +64,7 @@ class AddReportControllerImp extends AddReportController {
   File? selectedPickFile;
   List<String> items = ['ممتاز', 'جيد', 'متوسط', 'ضعيف'];
   FlutterSoundRecorder? audioRecorder;
-  String? audioFilePath;
+  late String audioFilePath;
   // خريطة تربط أسماء السور بأرقامها
   final Map<String, int> surahMap = {
     'الفاتحة': 1,
@@ -184,38 +196,108 @@ class AddReportControllerImp extends AddReportController {
     return verses;
   }
 
+//
+  Future<Map<String, dynamic>> sendAudioNote({
+    required int studentId,
+    required int teacherId,
+    required File audioFile,
+  }) async {
+    final url = Uri.parse(AppLink.addReport); // رابط API الخاص بك
+    final request = http.MultipartRequest('POST', url);
+
+    request.fields['student_id'] = studentId.toInt().toString();
+    request.fields['teacher_id'] = teacherId.toInt().toString();
+    // request.files
+    //     .add(await http.MultipartFile.fromPath('audio_note', audioFile.path));
+    Future<bool> fileExists(String path) async {
+      return await File(path).exists();
+    }
+
+    if (await fileExists(audioFile.path)) {
+      request.files
+          .add(await http.MultipartFile.fromPath('audio_note', audioFile.path));
+
+      // var file = await MultipartFile.fromPath('audio_note', audioFilePath!) ;
+      // تابع التنفيذ
+    } else {
+      // return;
+
+      print('الملف غير موجود: ${audioFile.path}');
+    }
+
+    final response = await request.send();
+
+    if (response.statusCode == 200) {
+      final responseBody = await response.stream.bytesToString();
+      return json.decode(responseBody);
+    } else {
+      return {'success': false, 'message': 'فشل في إرسال الملاحظة الصوتية'};
+    }
+  }
+
+//
+  void sendAudioNoteToTeacher(File audioFile) async {
+    prefs = await SharedPreferences.getInstance();
+    isLoading = true;
+    update();
+
+    // SharedPreferences prefs = await SharedPreferences.getInstance();
+    studentIdd = prefs.getInt("student_id")!;
+    // classIdd = prefs.getInt("class_id")!;
+    teacherIdd = prefs.getInt("id")!;
+    // أضف الكود لإرسال الملف إلى السيرفر
+    // final response = await reportService.sendReport(ReportModel(
+    final response = await sendAudioNote(
+      studentId: studentIdd.toInt(), // استبدل بالقيم المناسبة
+      teacherId: teacherIdd.toInt(),
+
+      audioFile: audioFile,
+    );
+
+    if (response['success']) {
+      Get.snackbar('نجاح', 'تم إرسال الملاحظة الصوتية بنجاح');
+    } else {
+      Get.snackbar('خطأ', 'فشل في إرسال الملاحظة الصوتية');
+    }
+  }
+
+//
   //
   @override
   deleteReport(int id) async {
-    isLoading = true;
-    Get.back();
+    // Get.back();
+
+    statusRequest = StatusRequest.loading;
 
     update();
     try {
-      final response = await http.post(
-        Uri.parse(AppLink.deleteReport),
-        body: {'id': id.toString()},
-      );
+      Get.back();
+      update();
+      statusRequest = StatusRequest.loading;
 
-      final data = json.decode(response.body);
-      isLoading = false;
-
-      if (response.statusCode == 200 && data['success'] == true) {
-        isLoading = false;
-        update();
-
-        Get.snackbar(
-          "نجاح",
-          'تم حذف التقرير بنجاح !',
-          backgroundColor: AppColors.backgroundIDsColor,
-          colorText: AppColors.primaryColor,
-          barBlur: 4,
-          animationDuration: const Duration(seconds: 5),
-        );
-        fetchReportStudentForRoleTeacher();
-        update();
+      var response = reportData.deleteReport(id);
+      statusRequest = handlingData(response);
+      if (StatusRequest.success == statusRequest) {
+        if (response is Map<String, dynamic>) {
+          if (response['success'] == true) {
+            Get.snackbar(
+              "نجاح",
+              'تم حذف التقرير بنجاح !',
+              backgroundColor: AppColors.backgroundIDsColor,
+              colorText: AppColors.primaryColor,
+              barBlur: 4,
+              animationDuration: const Duration(seconds: 5),
+            );
+            await fetchReportStudentForRoleTeacher();
+            update();
+            // hasData = true;
+          }
+          statusRequest = StatusRequest.loading;
+          update();
+        }
       } else {
-        throw Exception(data['message'] ?? 'فشل في حذف التقرير');
+        statusRequest = StatusRequest.none;
+        throw Exception(response['message'] ?? 'فشل في حذف التقرير');
       }
     } catch (e) {
       Get.snackbar(
@@ -228,215 +310,425 @@ class AddReportControllerImp extends AddReportController {
     }
   }
 
-//
+// //
+//   bool hasData = false;
+//   Future<ReportModel?> getUsers() {
+//     if (hasData) {
+//       return Future(() => reportModel);
+//     } else {
+//       return Future(() => null);
+//     }
+//   }
+
+// //
   @override
   fetchReportStudentForRoleTeacher() async {
-    isLoading = true;
-    update();
-    prefs = await SharedPreferences.getInstance();
-    studentIdInRoleTeacher = prefs.getInt("student_id")!;
-    final url =
-        '${AppLink.getReports}?student_id=$studentIdInRoleTeacher'; // ضع الرابط الصحيح هنا
-    final response = await http.get(Uri.parse(url));
-    isLoading = false;
-    update();
-    if (response.statusCode == 200) {
-      isLoading = false;
-      update();
-
-      final data = json.decode(response.body);
-      if (data['success']) {
-        log("studentIdInRoleTeacher", error: studentIdInRoleTeacher);
-        print('Data received reportStudent: $reportStudentForRoleTeacher');
-        reportStudentForRoleTeacher = data['data'];
-      } else {
-        throw Exception(data['message']);
-      }
-    } else {
-      throw Exception('Failed to load teacher students');
-    }
-  }
-
-  //
-  @override
-  fetchReportStudentForRoleStudent() async {
-    // isLoading = true;
-
-    prefs = await SharedPreferences.getInstance();
-    studentIdInRoleStudent = prefs.getInt("id")!;
-    update();
-    // studentId = prefs.getInt("student_id")!;
-    log("$studentIdInRoleStudent",
-        name: 'studentIdInRoleStudent', error: studentIdInRoleStudent);
-    final response = await http.get(
-      Uri.parse('${AppLink.getReports}?student_id=$studentIdInRoleStudent'),
-    );
-    isLoading = false;
-    update();
-    if (response.statusCode == 200) {
-      isLoading = false;
-      update();
-
-      final data = json.decode(response.body);
-      if (data['success']) {
-        return reportStudentForRoleStudent = data['data'];
-      } else {
-        throw Exception(data['message']);
-      }
-    } else {
-      throw Exception('Failed to fetch reports');
-    }
-  }
-
-  //
-  @override
-  submitReport() async {
-    // if (selectedAssessment != null) {
-    // try {
-    prefs = await SharedPreferences.getInstance();
-    isLoading = true;
+    statusRequest = StatusRequest.loading;
     update();
 
-    // SharedPreferences prefs = await SharedPreferences.getInstance();
-    studentIdd = prefs.getInt("student_id")!;
-    classIdd = prefs.getInt("class_id")!;
-    teacherIdd = prefs.getInt("id")!;
-    startVersee = prefs.getInt("startVerse") ?? 0;
-    endVersee = prefs.getInt("endVerse") ?? 0;
-    selectedSurah = prefs.getString("surah");
-
-    log("$selectedSurah", name: 'selectedSurah', error: selectedSurah);
-    log("$startVersee", name: 'startVersee', error: startVersee);
-    log("$endVersee", name: 'endVersee', error: endVersee);
-
-    var response = await reportService.sendReport(ReportModel(
-      studentId: studentIdd,
-      classId: classIdd,
-      teacherId: teacherIdd,
-      surah: selectedSurah,
-      startVerse: startVersee,
-      endVerse: endVersee,
-      assessment: selectedAssessment,
-      note: noteController.text,
-      // filePath: selectedFile,
-      // audioNotePath: audioFile,
-    ));
-    if (response['success']) {
-      prefs = await SharedPreferences.getInstance();
-      await prefs.remove('student_id');
-      await prefs.remove('class_id');
-      await prefs.remove('surah');
-      await prefs.remove('startVerse');
-      await prefs.remove('endVerse');
-
-      isLoading = false;
-      update();
-      // Navigator.pop(context, true);
-      Get.back(result: true);
-    } else {
-      isLoading = false;
-      update();
-      // Handle error
-      Get.snackbar(
-        "حدث خطأ",
-        response['message'],
-        backgroundColor: AppColors.primaryColor,
-        colorText: AppColors.backgroundIDsColor,
-        animationDuration: const Duration(seconds: 5),
-      );
-    }
-  }
-
-  @override
-  sendReport() async {
-    prefs = await SharedPreferences.getInstance();
-
-    // SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    teacherIdd = prefs.getInt("id")!;
-    classIdd = prefs.getInt("class_id")!;
-
-    log("$teacherIdd", name: 'teacherId', error: teacherIdd);
-    log("$classIdd", name: 'classId', error: classIdd);
-    studentIdd = prefs.getInt("student_id")!;
-    log("$studentIdd", name: 'studentId', error: studentIdd);
-
-    final url = Uri.parse(AppLink.addReport);
-
-    var request = http.MultipartRequest('POST', url);
-
-    // إضافة الحقول إلى الطلب
-    request.fields['student_id'] = reportModel.studentId.toString();
-    request.fields['class_id'] = reportModel.classId.toString();
-    request.fields['teacher_id'] = reportModel.teacherId.toString();
-    request.fields['assessment'] = reportModel.assessment ?? '';
-    request.fields['note'] = reportModel.note ?? '';
-    request.fields['surah'] = reportModel.surah ?? '';
-    request.fields['startVerse'] = reportModel.startVerse.toString();
-    request.fields['endVerse'] = reportModel.endVerse.toString();
-    // request.fields['file_path'] = reportModel.filePath.toString();
-    // request.fields['audio_note_path'] = reportModel.audioNotePath.toString();
-
-    // إضافة الملف إذا كان موجودًا
-    if (reportModel.filePath != null) {
-      request.files.add(await http.MultipartFile.fromPath(
-          'file', reportModel.filePath!.path));
-    }
-
-    // إضافة الملف الصوتي إذا كان موجودًا
-    if (reportModel.audioNotePath != null) {
-      request.files.add(await http.MultipartFile.fromPath(
-          'audio_note', reportModel.audioNotePath!.path));
-    }
-    isLoading = true;
-
-    // إرسال الطلب واستلام الاستجابة
     try {
-      final response = await request.send();
+      update();
+      prefs = await SharedPreferences.getInstance();
+      studentIdInRoleTeacher = prefs.getInt("student_id")!;
+      // جلب البيانات
+      var response = await reportData
+          .getDataReportTeachereStudents(studentIdInRoleTeacher);
+      statusRequest = handlingData(await response);
 
-      if (response.statusCode == 200) {
-        final responseBody = await response.stream.bytesToString();
-        return json.decode(responseBody);
+      if (StatusRequest.success == statusRequest) {
+        // تأكد من أن response هو كائن JSON
+
+        if (await response['success'] == true) {
+          response is Map<String, dynamic>;
+          log("studentIdInRoleTeacher", error: studentIdInRoleTeacher);
+          reportStudentForRoleTeacher = await response['data'];
+          update();
+          // hasData = true;
+        } else {
+          statusRequest = StatusRequest.failure;
+          throw Exception(await response['message']);
+        }
       } else {
-        return {
-          'success': false,
-          'message':
-              'فشل في الاتصال بالخادم. رمز الخطأ: ${response.statusCode}',
-        };
+        statusRequest = StatusRequest.failure;
+        throw Exception('Invalid response format');
       }
     } catch (e) {
-      return {
-        'success': false,
-        'message': 'حدث خطأ أثناء الإرسال: $e',
-      };
+      print('Error: $e');
+      statusRequest = StatusRequest.failure;
+    }
+
+    update();
+  }
+
+//
+  @override
+  fetchReportStudentForRoleStudent() async {
+    statusRequest = StatusRequest.loading;
+    update();
+    try {
+      prefs = await SharedPreferences.getInstance();
+      studentIdInRoleStudent = prefs.getInt("id")!;
+      // جلب البيانات
+      var response = await reportData
+          .getDataReportTeachereStudents(studentIdInRoleStudent);
+      statusRequest = handlingData(await response);
+
+      if (StatusRequest.success == statusRequest) {
+        // تأكد من أن response هو كائن JSON
+        // if (response is Map<String, dynamic>) {
+        if (response['success'] == true) {
+          response is Map<String, dynamic>;
+          log("studentIdInRoleTeacher", error: studentIdInRoleStudent);
+          reportStudentForRoleStudent = await response['data'];
+          // hasData = true;
+        } else {
+          statusRequest = StatusRequest.failure;
+          throw Exception(await response['message']);
+        }
+      } else {
+        statusRequest = StatusRequest.failure;
+        throw Exception('Invalid response format');
+        // }
+      }
+    } catch (e) {
+      print('Error: $e');
+      statusRequest = StatusRequest.failure;
+    }
+    update();
+  }
+
+//
+  @override
+  submitReport() async {
+    statusRequest = StatusRequest.loading;
+    update();
+    // if (selectedAssessment != null) {
+    try {
+      prefs = await SharedPreferences.getInstance();
+      studentIdd = prefs.getInt("student_id")!;
+      classIdd = prefs.getInt("class_id")!;
+      teacherIdd = prefs.getInt("id")!;
+      startVersee = prefs.getInt("startVerse") ?? 0;
+      endVersee = prefs.getInt("endVerse") ?? 0;
+      selectedSurah = prefs.getString("surah");
+      startVerseReview = prefs.getInt("startVerseReview") ?? 0;
+      endVerseReview = prefs.getInt("endVerseReview") ?? 0;
+      selectedSurahReview = prefs.getString("surahReview");
+
+      log("$selectedSurah", name: 'selectedSurah', error: selectedSurah);
+      log("$startVersee", name: 'startVersee', error: startVersee);
+      log("$endVersee", name: 'endVersee', error: endVersee);
+      log("$selectedSurahReview",
+          name: 'selectedSurahReview', error: selectedSurahReview);
+      log("$startVerseReview",
+          name: 'startVerseReview', error: startVerseReview);
+      log("$endVerseReview", name: 'endVerseReview', error: endVerseReview);
+
+      // // إعداد نموذج التقرير
+      // ReportModel reportModel = ReportModel(
+      //   studentId: studentIdd,
+      //   classId: classIdd,
+      //   teacherId: teacherIdd,
+      //   surah: selectedSurah,
+      //   startVerse: startVersee,
+      //   endVerse: endVersee,
+      //   assessment: selectedAssessment,
+      //   note: noteController.text,
+      //   filePath: selectedFile,
+      //   audioNotePath: audioFile,
+      // );
+
+      log("selectedAssessment", error: selectedAssessment);
+
+      log("reportModel.assessment", error: reportModel.assessment);
+      // final response = await reportService.sendReport(reportModel);
+      var response = await reportService.sendReport(ReportModel(
+        studentId: studentIdd,
+        classId: classIdd,
+        teacherId: teacherIdd,
+        surahReview: selectedSurahReview,
+        startVerseReview: startVerseReview,
+        endVerseReview: endVerseReview,
+        surah: selectedSurah,
+        startVerse: startVersee,
+        endVerse: endVersee,
+        assessment: selectedAssessment,
+        note: noteController.text,
+        // filePath: selectedFile,
+        // audioNotePath: audioFile,
+      ));
+
+      if (response['success']) {
+        prefs = await SharedPreferences.getInstance();
+        await prefs.remove('student_id');
+        await prefs.remove('class_id');
+        await prefs.remove('surah');
+        await prefs.remove('startVerse');
+        await prefs.remove('endVerse');
+        await prefs.remove('surahReview');
+        await prefs.remove('startVerseReview');
+        await prefs.remove('endVerseReview');
+        statusRequest = StatusRequest.none;
+        update();
+        // Navigator.pop(context, true);
+        Get.back(result: true);
+      } else {
+        statusRequest = StatusRequest.failure;
+        update();
+        // Handle error
+        Get.snackbar(
+          "حدث خطأ",
+          response['message'],
+          backgroundColor: AppColors.primaryColor,
+          colorText: AppColors.backgroundIDsColor,
+          animationDuration: const Duration(seconds: 5),
+        );
+        // statusRequest = StatusRequest.none;
+      }
+      statusRequest = StatusRequest.none;
+    } catch (e) {
+      log("message => e", error: e);
+      return e;
     }
   }
 
+  // @override
+  // sendReport() async {
+  //   prefs = await SharedPreferences.getInstance();
+
+  //   // SharedPreferences prefs = await SharedPreferences.getInstance();
+
+  //   teacherIdd = prefs.getInt("id")!;
+  //   classIdd = prefs.getInt("class_id")!;
+
+  //   log("$teacherIdd", name: 'teacherId', error: teacherIdd);
+  //   log("$classIdd", name: 'classId', error: classIdd);
+  //   studentIdd = prefs.getInt("student_id")!;
+  //   log("$studentIdd", name: 'studentId', error: studentIdd);
+
+  //   final url = Uri.parse(AppLink.addReport);
+
+  //   var request = http.MultipartRequest('POST', url);
+
+  //   // إضافة الحقول إلى الطلب
+  //   request.fields['student_id'] = reportModel.studentId.toString();
+  //   request.fields['class_id'] = reportModel.classId.toString();
+  //   request.fields['teacher_id'] = reportModel.teacherId.toString();
+  //   request.fields['assessment'] = reportModel.assessment ?? '';
+  //   request.fields['note'] = reportModel.note ?? '';
+  //   request.fields['surah'] = reportModel.surah ?? '';
+  //   request.fields['startVerse'] = reportModel.startVerse.toString();
+  //   request.fields['endVerse'] = reportModel.endVerse.toString();
+  //   request.fields['surahReview'] = reportModel.surahReview ?? '';
+  //   request.fields['startVerseReview'] =
+  //       reportModel.startVerseReview.toString();
+  //   request.fields['endVerseReview'] = reportModel.endVerseReview.toString();
+  //   // request.fields['file_path'] = reportModel.filePath.toString();
+  //   // request.fields['audio_note_path'] = reportModel.audioNotePath.toString();
+
+  //   // إضافة الملف إذا كان موجودًا
+  //   if (reportModel.filePath != null) {
+  //     request.files.add(await http.MultipartFile.fromPath(
+  //         'file', reportModel.filePath!.path));
+  //   }
+
+  //   // إضافة الملف الصوتي إذا كان موجودًا
+  //   if (reportModel.audioNotePath != null) {
+  //     request.files.add(await http.MultipartFile.fromPath(
+  //         'audio_note', reportModel.audioNotePath!.path));
+  //   }
+  //   isLoading = true;
+
+  //   // إرسال الطلب واستلام الاستجابة
+  //   try {
+  //     final response = await request.send();
+
+  //     if (response.statusCode == 200) {
+  //       final responseBody = await response.stream.bytesToString();
+  //       return json.decode(responseBody);
+  //     } else {
+  //       return {
+  //         'success': false,
+  //         'message':
+  //             'فشل في الاتصال بالخادم. رمز الخطأ: ${response.statusCode}',
+  //       };
+  //     }
+  //   } catch (e) {
+  //     return {
+  //       'success': false,
+  //       'message': 'حدث خطأ أثناء الإرسال: $e',
+  //     };
+  //   }
+  // }
+
   //
 
   //
   @override
-  void onInit() {
+  void onInit() async {
+    statusRequest = StatusRequest.none;
+    // deleteReport(0);
+
     super.onInit();
-    initialData();
-    isLoading;
+    // getUsers();
+    await initialData();
+    prefs = await SharedPreferences.getInstance();
+
+    // isLoading;
   }
 
   //
   @override
-  initialData() async {
+  initialData() {
+    statusRequest = StatusRequest.none;
+    // getUsers();
     fetchReportStudentForRoleStudent();
     reportModel = ReportModel();
     reportService = ReportService();
-    isLoading;
+
+    // isLoading;
     fetchReportStudentForRoleTeacher();
-    prefs = await SharedPreferences.getInstance();
-    submitReport();
+    // prefs = await SharedPreferences.getInstance();
+    //  No ADD //  submitReport();
+    // submitReport();
     // SharedPreferences prefs = await SharedPreferences.getInstance();
   }
 
   //
+
   //
+  void showQuranReviewSelectionDialog(BuildContext context) {
+    String? selectedSurahReview;
+    int? startVerseReview;
+    int? endVerseReview;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('تحديد المراجعة'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // اختيار السورة
+                  DropdownButtonFormField<String>(
+                    value: selectedSurahReview,
+                    hint: const Text('اختر السورة'),
+                    onChanged: (value) async {
+                      setState(() {
+                        selectedSurahReview = value;
+                        startVerseReview = null;
+                        endVerseReview = null;
+                      });
+                    },
+                    items: List.generate(
+                      114,
+                      (index) {
+                        int surahReviewNumber = index + 1;
+                        return DropdownMenuItem<String>(
+                          value: surahReviewNumber.toString(),
+                          child: Text(
+                              'سورة ${quran.getSurahNameArabic(surahReviewNumber)}'),
+                        );
+                      },
+                    ),
+                  ),
+                  // اختيار آية البداية
+                  if (selectedSurahReview != null)
+                    DropdownButtonFormField<int>(
+                      value: startVerseReview,
+                      hint: const Text('اختر آية البداية'),
+                      onChanged: (value) async {
+                        setState(() {
+                          startVerseReview = value;
+                          if (endVerseReview != null &&
+                              endVerseReview! < startVerseReview!) {
+                            endVerseReview = null;
+                          }
+                        });
+                      },
+                      items: List.generate(
+                        quran.getVerseCount(int.parse(selectedSurahReview!)),
+                        (index) => DropdownMenuItem<int>(
+                          value: index + 1,
+                          child: Text('آية ${index + 1}'),
+                        ),
+                      ),
+                    ),
+
+                  // اختيار آية النهاية
+                  if (startVerseReview != null)
+                    DropdownButtonFormField<int>(
+                      value: endVerseReview,
+                      hint: const Text('اختر آية النهاية'),
+                      onChanged: (value) async {
+                        setState(() {
+                          endVerseReview = value;
+                        });
+                        log("$endVerseReview", name: "$endVerseReview");
+                      },
+                      items: List.generate(
+                        quran.getVerseCount(int.parse(selectedSurahReview!)),
+                        (index) {
+                          int verseReviewNumber = index + 1;
+                          return verseReviewNumber >= startVerseReview!
+                              ? DropdownMenuItem<int>(
+                                  value: verseReviewNumber,
+                                  child: Text('آية $verseReviewNumber'),
+                                )
+                              : null;
+                        },
+                      ).whereType<DropdownMenuItem<int>>().toList(),
+                    ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('إلغاء'),
+                ),
+                ElevatedButton(
+                  onPressed: selectedSurahReview != null &&
+                          startVerseReview != null &&
+                          endVerseReview != null
+                      ? () {
+                          Navigator.pop(context, {
+                            'surahReview': selectedSurahReview,
+                            'startVerseReview': startVerseReview,
+                            'endVerseReview': endVerseReview,
+                          });
+                        }
+                      : null,
+                  child: const Text('حفظ'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    ).then((result) async {
+      if (result != null) {
+        print(
+            'السورة: ${quran.getSurahNameArabic(int.parse(result['surahReview']))}');
+        print('من الآية: ${result['startVerseReview']}');
+        print('إلى الآية: ${result['endVerseReview']}');
+      }
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('surahReview',
+          quran.getSurahNameArabic(int.parse(result['surahReview'])));
+
+      await prefs.setInt('startVerseReview', result['startVerseReview']);
+
+      await prefs.setInt('endVerseReview', result['endVerseReview']);
+    });
+  }
+
+  //
+
   //
   void showQuranSelectionDialog(BuildContext context) {
     String? selectedSurah;
@@ -584,28 +876,28 @@ class AddReportControllerImp extends AddReportController {
   }
 //
 
-  Future<void> recordAudio() async {
-    // طلب الإذن لاستخدام الميكروفون
-    var status = await Permission.microphone.request();
-    if (status.isGranted) {
-      if (audioRecorder == null) {
-        audioRecorder = FlutterSoundRecorder();
-        await audioRecorder?.openRecorder();
-      }
+  // Future<void> recordAudio() async {
+  //   // طلب الإذن لاستخدام الميكروفون
+  //   var status = await Permission.microphone.request();
+  //   if (status.isGranted) {
+  //     if (audioRecorder == null) {
+  //       audioRecorder = FlutterSoundRecorder();
+  //       await audioRecorder?.openRecorder();
+  //     }
 
-      if (!audioRecorder!.isRecording) {
-        audioFilePath = '/path/to/save/recorded_audio.aac'; // تحديد مسار الملف
-        await audioRecorder!.startRecorder(toFile: audioFilePath);
-        print('Recording started');
-      } else {
-        await audioRecorder!.stopRecorder();
-        print('Recording stopped, file saved at: $audioFilePath');
-      }
-    } else {
-      print('Microphone permission not granted');
-    }
-  }
-  //
+  //     if (!audioRecorder!.isRecording) {
+  //       audioFilePath = '/path/to/save/recorded_audio.aac'; // تحديد مسار الملف
+  //       await audioRecorder!.startRecorder(toFile: audioFilePath);
+  //       print('Recording started');
+  //     } else {
+  //       await audioRecorder!.stopRecorder();
+  //       print('Recording stopped, file saved at: $audioFilePath');
+  //     }
+  //   } else {
+  //     print('Microphone permission not granted');
+  //   }
+  // }
+  // //
 
   Future<void> pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
