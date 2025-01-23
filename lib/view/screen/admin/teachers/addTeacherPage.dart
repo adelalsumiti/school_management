@@ -164,7 +164,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:school_management/core/class/handlingdataview.dart';
-import 'package:school_management/view/controller/roleAdmin_Teachers/controller_roleAdmin_Teachers.dart';
+import 'package:school_management/view/controller/roleAdmin/controller_roleAdmin_Teachers.dart';
 
 class AddTeacherPage extends StatelessWidget {
   const AddTeacherPage({super.key});

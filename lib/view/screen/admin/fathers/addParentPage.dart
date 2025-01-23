@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:school_management/core/class/handlingdataview.dart';
-import 'package:school_management/view/controller/roleAdmin_Fathers/controller_roleAdmin_Fathers.dart';
+import 'package:school_management/view/controller/roleAdmin/controller_roleAdmin_Fathers.dart';
 
 class AddParentPage extends StatelessWidget {
   const AddParentPage({super.key});

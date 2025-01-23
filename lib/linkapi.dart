@@ -2,7 +2,8 @@ class AppLink {
   // ======================== Server ==============================================//
 
   static String server = "https://adenelectricity.com/school_management";
-  static String upload = '$server/upload/';
+  // static String upload = '$server/upload/';
+  static String upload = '$server/reports/';
 
   //  ======================= Images =============================================//
 
@@ -46,6 +47,9 @@ class AppLink {
   // ============= Name Files In PhP  =>
 
   static String addReport = "$reports/addReport.php";
+  static String submitStudentResponse = "$reports/submit_student_response.php";
+  static String uploadReport = "$reports/uploadReport.php";
+  static String submitTeacherResponse = "$reports/submit_teacher_response.php";
   static String deleteReport = '$reports/deleteReport.php';
   static String getReports = "$reports/getReports.php";
   static String getStudentReports = "$reports/getStudentReports.php";

@@ -8,8 +8,7 @@ import 'package:mc_utils/mc_utils.dart';
 import 'package:school_management/core/class/handlingdataview.dart';
 import 'package:school_management/core/constant/colors.dart';
 import 'package:school_management/view/controller/controller_addReport.dart';
-import 'package:school_management/view/screen/student/audioNoteDialog.dart';
-import 'package:school_management/view/screen/student/recording_Screen.dart';
+// import 'package:school_management/view/screen/student/audioNoteDialog.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:quran/quran.dart' as quran;
 
@@ -96,7 +95,7 @@ class AddReportPage extends StatelessWidget {
                               colorBtn: AppColors.primaryColor,
                               onTap: () async {
                                 // showAudioNoteDialog(context);
-                                Get.to(() => const RecordingScreen());
+                                // Get.to(() => const RecordingScreen());
                                 // await controller.recordAudio();
                               },
                               blod: true,
@@ -156,31 +155,5 @@ class AddReportPage extends StatelessWidget {
                 )));
   }
 
-  void showAudioNoteDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AudioNoteDialog(onSubmit: (audioFile) {
-          // استدعاء الوظيفة لإرسال الملاحظة الصوتية هنا
-          control.sendAudioNoteToTeacher(audioFile);
-        });
-      },
-    );
-  }
+ 
 }
-
-//
-// DropdownButtonFormField<String>(
-//   items: controller.items
-//       // items: ['ممتاز', 'جيد', 'متوسط', 'ضعيف']
-//       .map((e) =>
-//           DropdownMenuItem(value: e, child: Text(e)))
-//       .toList(),
-//   // onChanged: (value) =>
-//   onChanged: (value) async {
-//     controller.selectedAssessment = value;
-//     log("controller.selectedAssessment",
-//         error: controller.selectedAssessment);
-//   },
-//   decoration: const InputDecoration(labelText: 'التقييم'),
-// ),

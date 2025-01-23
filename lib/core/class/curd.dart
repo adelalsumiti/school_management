@@ -359,11 +359,10 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
+import 'package:get/get.dart';
 import 'package:retry/retry.dart';
 import 'package:school_management/core/funcations/checkinternet.dart';
 import 'package:http/http.dart' as http;
-import 'package:school_management/core/funcations/multidialog.dart';
-import 'package:school_management/core/funcations/showsmartdialog.dart';
 import 'statusrequest.dart';
 
 //
@@ -388,13 +387,9 @@ class Crud {
         //
 
         final response = await retry(
-          // Make a GET request
-
+          // Make a POST request
           () => http
-              .post(Uri.parse(linkurl), body: data
-                  // body: jsonEncode(data),
-                  // headers: myheaders,
-                  )
+              .post(Uri.parse(linkurl), body: data)
               .timeout(const Duration(seconds: 15)),
           // Retry on SocketException or TimeoutException
           retryIf: (e) =>
@@ -433,7 +428,7 @@ class Crud {
         //
 
         final response = await retry(
-          // Make a GET request
+          // Make a POST request
 
           () => http
               .post(
@@ -481,7 +476,7 @@ class Crud {
         //
 
         final response = await retry(
-          // Make a GET request
+          // Make a POST request
 
           () => http.post(Uri.parse(linkurl), body: jsonEncode(data), headers: {
             "Content-Type": "application/json"
@@ -524,7 +519,7 @@ class Crud {
         //
 
         final response = await retry(
-          // Make a GET request
+          // Make a POST request
 
           () => http.post(Uri.parse(linkurl),
               body: json.encode(data),
@@ -589,6 +584,59 @@ class Crud {
       return const Left(StatusRequest.serverfailure);
     } catch (e) {
       // return Left(Failure('Error: $e'));
+      return const Left(StatusRequest.serverfailure);
+    }
+  }
+
+  //
+  Future<Either<StatusRequest, Map>> postUploadAudio(
+      String linkurl, File file) async {
+    try {
+      if (await checkInternet()) {
+        var request = await retry(
+            // Make a POST request
+            () => http.MultipartRequest(
+                  'POST',
+                  Uri.parse(linkurl),
+                ),
+            // Retry on SocketException or TimeoutException
+            retryIf: (e) =>
+                e is SocketException ||
+                e is TimeoutException ||
+                e is http.ClientException,
+            onRetry: (e) {
+              log("$e", name: 'onRetry');
+            });
+        request.files.add(await retry(
+            () => http.MultipartFile.fromPath(
+                  'audio',
+                  file.path,
+                ),
+            retryIf: (e) =>
+                e is SocketException ||
+                e is TimeoutException ||
+                e is http.ClientException,
+            onRetry: (e) {
+              log("$e", name: 'onRetry');
+            }));
+        //
+
+        var response = await request.send();
+
+        print(
+            "=response.statusCode========${response.statusCode}===================");
+
+        if (response.statusCode == 200) {
+          Get.snackbar('نجاح', 'تم رفع الملف بنجاح');
+          return const Right({}); // إرجاع Map فارغ أو البيانات التي تريدها
+        } else {
+          Get.snackbar('خطأ', 'فشل في رفع الملف');
+          return const Left(StatusRequest.serverfailure);
+        }
+      } else {
+        return const Left(StatusRequest.offlinefailure);
+      }
+    } catch (_) {
       return const Left(StatusRequest.serverfailure);
     }
   }

@@ -9,13 +9,7 @@ class StudentReportReviewQuranPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Get.put(AddReportControllerImp());
-    return
-        // Scaffold(
-        //   appBar: AppBar(
-        //     title: const Text('تقرير الحفظ'),
-        //   ),
-        //   body:
-        GetBuilder<AddReportControllerImp>(
+    return GetBuilder<AddReportControllerImp>(
       builder: (controller) => Column(
         children: [
           Expanded(

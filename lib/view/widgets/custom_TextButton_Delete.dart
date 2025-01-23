@@ -30,7 +30,8 @@ class CustomTextButtonDelete extends StatelessWidget {
       margin: const EdgeInsets.only(
         // bottom: 15,
         bottom: 5,
-        left: 10,
+        // left: 10,
+
         top: 5,
       ),
       decoration: BoxDecoration(

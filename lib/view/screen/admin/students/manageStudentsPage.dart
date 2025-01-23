@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:school_management/core/class/handlingdataview.dart';
 import 'package:school_management/core/constant/colors.dart';
-import 'package:school_management/view/controller/roleAdmin_Students.dart/controller_roleAdmin_Students.dart';
+import 'package:school_management/view/controller/roleAdmin/controller_roleAdmin_Students.dart';
 
 class ManageStudentsPage extends StatelessWidget {
   ManageStudentsPage({super.key});

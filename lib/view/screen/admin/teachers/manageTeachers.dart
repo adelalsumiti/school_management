@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 import 'package:school_management/core/class/handlingdataview.dart';
 import 'package:school_management/core/constant/colors.dart';
 import 'package:school_management/core/constant/routes.dart';
-import 'package:school_management/view/controller/roleAdmin_Teachers/controller_roleAdmin_Teachers.dart';
+import 'package:school_management/view/controller/roleAdmin/controller_roleAdmin_Teachers.dart';
 
 class ManageTeachersPage extends StatelessWidget {
   ManageTeachersPage({super.key});
