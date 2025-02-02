@@ -51,6 +51,7 @@ class AppLink {
   static String uploadReport = "$reports/uploadReport.php";
   static String submitTeacherResponse = "$reports/submit_teacher_response.php";
   static String deleteReport = '$reports/deleteReport.php';
+  static String deleteRecord = '$reports/deleteRecord.php';
   static String getReports = "$reports/getReports.php";
   static String getStudentReports = "$reports/getStudentReports.php";
   static String getReportStudent = "$reports/getReportStudent.php";

@@ -1,6 +1,7 @@
 // ignore_for_file: must_be_immutable
 
 import 'package:flutter/material.dart';
+import 'package:school_management/core/constant/colors.dart';
 
 class CustomButtonDelete extends StatelessWidget {
   void Function()? onPressedCancel;
@@ -17,16 +18,26 @@ class CustomButtonDelete extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          boxShadow: [BoxShadow(spreadRadius: 0.5, blurRadius: 4)],
-          color: Color.fromARGB(248, 255, 255, 255),
-          border: Border.symmetric(
-              horizontal: BorderSide(), vertical: BorderSide())),
-      child: IconButton(
-        icon: const Icon(Icons.delete),
-        color: Colors.red[700],
+    return
+        // Container(
+        //   // height: 30,
+        //   // width: 30,
+        //   decoration: const BoxDecoration(
+        //     color: AppColors.actionColor,
+        //     shape: BoxShape.circle,
+        //     boxShadow: [BoxShadow(spreadRadius: 0.5, blurRadius: 4)],
+        //     // color: Color.fromARGB(248, 255, 255, 255),
+        //     // border: Border.symmetric(
+        //     //     horizontal: BorderSide(), vertical: BorderSide())
+        //   ),
+        //   child:
+        CircleAvatar(
+      maxRadius: 17,
+      backgroundColor: AppColors.actionColor,
+      child: MaterialButton(
+        padding: const EdgeInsets.all(1),
+
+        // color: Colors.red[700],
         onPressed: () {
           showDialog(
             context: context,
@@ -49,6 +60,15 @@ class CustomButtonDelete extends StatelessWidget {
             ),
           );
         },
+        height: 20,
+        minWidth: 20,
+        elevation: 50,
+        textColor: AppColors.backgroundIDsColor,
+        child: const Icon(
+          Icons.delete,
+          size: 23,
+        ),
+        // ),
       ),
     );
   }

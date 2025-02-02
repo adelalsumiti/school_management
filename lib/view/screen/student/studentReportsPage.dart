@@ -8,6 +8,7 @@ import 'package:school_management/view/screen/student/custom_get_report_review_q
 import 'dart:io';
 
 import 'package:school_management/view/screen/student/custom_get_report_saved_quran.dart';
+import 'package:school_management/view/widgets/custom_IconButton_Delete.dart';
 
 class StudentReportsPage extends StatelessWidget {
   StudentReportsPage({super.key});
@@ -25,7 +26,7 @@ class StudentReportsPage extends StatelessWidget {
         actions: [
           IconButton(
             onPressed: () async {
-              control.fetchReportStudent();
+              control.getReports();
             },
             icon: const Icon(Icons.refresh_outlined),
           ),
@@ -44,9 +45,9 @@ class StudentReportsPage extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
             ),
             child: ListView.builder(
-              itemCount: controller.reportStudentForRoleStudent.length,
+              itemCount: controller.reportStudent.length,
               itemBuilder: (context, index) {
-                final report = controller.reportStudentForRoleStudent[index];
+                final report = controller.reportStudent[index];
                 return Container(
                     padding: const EdgeInsets.only(bottom: 20),
                     margin: const EdgeInsets.only(top: 10, right: 2, left: 2),
@@ -93,6 +94,45 @@ class StudentReportsPage extends StatelessWidget {
                                     const SizedBox(
                                       height: 10,
                                     ),
+                                    // Wrap(
+                                    //   spacing: 5,
+                                    //   crossAxisAlignment:
+                                    //       WrapCrossAlignment.center,
+                                    //   runSpacing: 5,
+                                    //   runAlignment: WrapAlignment.spaceBetween,
+                                    //   alignment: WrapAlignment.center,
+                                    //   direction: Axis.horizontal,
+                                    //   children: [
+                                    //     if (report['audio_note_path'] != null)
+                                    //       McButton(
+                                    //         blod: true,
+                                    //         colorBtn: AppColors.primaryColor,
+                                    //         txt: 'تسجيل المعلم',
+                                    //         fontSize: 15,
+                                    //         onTap: () {
+                                    //           controller.playAudio(
+                                    //               report['audio_note_path']);
+                                    //         },
+                                    //       ),
+                                    //     if (report[
+                                    //             'student_audio_response_path'] !=
+                                    //         null)
+                                    //       McButton(
+                                    //         blod: true,
+                                    //         colorBtn: AppColors.primaryColor,
+                                    //         txt: 'تسجيل الطالب',
+                                    //         fontSize: 15,
+                                    //         onTap: () async {
+                                    //           controller.playAudio(report[
+                                    //               'student_audio_response_path']);
+                                    //         },
+                                    //       ),
+                                    //   ],
+                                    // )
+                                    // //
+                                    // ,
+
+                                    //
                                     Wrap(
                                       spacing: 5,
                                       crossAxisAlignment:
@@ -103,29 +143,158 @@ class StudentReportsPage extends StatelessWidget {
                                       direction: Axis.horizontal,
                                       children: [
                                         if (report['audio_note_path'] != null)
-                                          McButton(
-                                            blod: true,
-                                            colorBtn: AppColors.primaryColor,
-                                            txt: 'تسجيل المعلم',
-                                            fontSize: 15,
-                                            onTap: () {
-                                              controller.playAudio(
-                                                  report['audio_note_path']);
-                                            },
+                                          Container(
+                                            padding:
+                                                const EdgeInsets.only(left: 8),
+                                            decoration: BoxDecoration(
+                                                color: AppColors.primaryColor,
+                                                borderRadius:
+                                                    BorderRadius.circular(20)),
+                                            child: Wrap(
+                                              children: [
+                                                controller.audioPlayer.isStopped
+                                                    ? Row(
+                                                        children: [
+                                                          TextButton(
+                                                            child: const Text(
+                                                                'تسجيل المعلم',
+                                                                style:
+                                                                    TextStyle(
+                                                                  color:
+                                                                      AppColors
+                                                                          .black,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  fontSize: 15,
+                                                                )),
+                                                            onPressed: () {
+                                                              controller.playAudio(
+                                                                  report[
+                                                                      'audio_note_path']);
+                                                              controller
+                                                                  .audioPlayer
+                                                                  .isPlaying;
+                                                              controller
+                                                                      .audioPlayer
+                                                                      .isStopped ==
+                                                                  false;
+                                                              // controller
+                                                              //     .update();
+                                                            },
+                                                          ),
+                                                        ],
+                                                      )
+                                                    //
+                                                    : IconButton(
+                                                        iconSize: 30,
+                                                        icon: const Icon(Icons
+                                                                .pause_presentation_sharp
+                                                            // : Icons.mic
+                                                            ),
+                                                        style: ButtonStyle(
+                                                            backgroundColor:
+                                                                const WidgetStatePropertyAll(
+                                                                    AppColors
+                                                                        .actionColor),
+                                                            alignment: Alignment
+                                                                .center,
+                                                            iconColor:
+                                                                WidgetStateProperty
+                                                                    .all(AppColors
+                                                                        .backgroundIDsColor)),
+                                                        onPressed: () async {
+                                                          controller.audioPlayer
+                                                              .isStopped;
+                                                          controller.update();
+                                                        },
+                                                      ),
+                                              ],
+                                            ),
                                           ),
+                                        //
+
+                                        //
                                         if (report[
                                                 'student_audio_response_path'] !=
                                             null)
-                                          McButton(
-                                            blod: true,
-                                            colorBtn: AppColors.primaryColor,
-                                            txt: 'تسجيل الطالب',
-                                            fontSize: 15,
-                                            onTap: () async {
-                                              controller.playAudio(report[
-                                                  'student_audio_response_path']);
-                                            },
+                                          Container(
+                                            padding:
+                                                const EdgeInsets.only(left: 8),
+                                            decoration: BoxDecoration(
+                                                color: AppColors.primaryColor,
+                                                borderRadius:
+                                                    BorderRadius.circular(20)),
+                                            child: Wrap(children: [
+                                              controller.audioPlayer.isStopped
+                                                  ? Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .start,
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        TextButton(
+                                                          child: const Text(
+                                                              'تسجيل الطالب',
+                                                              style: TextStyle(
+                                                                color: AppColors
+                                                                    .black,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                fontSize: 15,
+                                                              )),
+                                                          onPressed: () async {
+                                                            controller.playAudio(
+                                                                report[
+                                                                    'student_audio_response_path']);
+                                                          },
+                                                        ),
+                                                        CustomButtonDelete(
+                                                          bodyMessage:
+                                                              'هل أنت متأكد من حذف تسجيل الطالب ؟',
+                                                          titileMessage:
+                                                              'تأكيد الحذف ؟ ',
+                                                          onPressedCancel: () =>
+                                                              Get.back(),
+                                                          onPressedYes:
+                                                              () async {
+                                                            controller.deleteAudio(
+                                                                report['id'],
+                                                                'student_audio_response_path');
+                                                          },
+                                                        ),
+                                                      ],
+                                                    )
+                                                  : IconButton(
+                                                      iconSize: 30,
+                                                      icon: const Icon(Icons
+                                                              .pause_presentation_sharp
+                                                          // : Icons.mic
+                                                          ),
+                                                      style: ButtonStyle(
+                                                          backgroundColor:
+                                                              const WidgetStatePropertyAll(
+                                                                  AppColors
+                                                                      .actionColor),
+                                                          alignment:
+                                                              Alignment.center,
+                                                          iconColor:
+                                                              WidgetStateProperty
+                                                                  .all(AppColors
+                                                                      .backgroundIDsColor)),
+                                                      onPressed: () async {
+                                                        controller.audioPlayer
+                                                            .isStopped;
+                                                        controller.update();
+                                                      },
+                                                    ),
+                                            ]),
                                           ),
+                                        //
+
+                                        //
                                       ],
                                     )
                                     //
@@ -250,7 +419,7 @@ class StudentReportsPage extends StatelessWidget {
                               if (controller.recordedFilePath != null)
                                 ElevatedButton(
                                   onPressed: () async {
-                                    await controller.sendStudentAudioResponse(
+                                    await controller.sendAudioSt(
                                       report['id'],
                                       File(controller.recordedFilePath!),
                                     );

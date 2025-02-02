@@ -41,7 +41,7 @@ class TeacherData {
   //
   // AddTeacher To Class
   addTeacherToClass(String? selectTeacher, String? selectClass) async {
-    var response = await crud.postDataAccount(
+    var response = await crud.postAddEditDelete(
       AppLink.addTeacherToClass,
       {
         'teacher_id': selectTeacher,
@@ -60,7 +60,7 @@ class TeacherData {
 
   // DeleteTeacher
   deleteTeacher(int? teacherId) async {
-    var response = await crud.postDataAccount(
+    var response = await crud.postAddEditDelete(
         AppLink.deleteTeacherFromClass, {'id': teacherId.toString()});
     print(
         '===============DeleteTeacher Teacher_Data ID  : $teacherId ===========');

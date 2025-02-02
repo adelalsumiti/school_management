@@ -1,6 +1,6 @@
 import 'package:school_management/core/constant/colors.dart';
 import 'package:school_management/core/services/services.dart';
-import 'package:school_management/main.dart';
+// import 'package:school_management/main.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'package:flutter/cupertino.dart';

@@ -14,23 +14,16 @@ import 'package:school_management/view/controller/controller_teachers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TeacherStudentsPage extends StatelessWidget {
-  const TeacherStudentsPage({
+  TeacherStudentsPage({
     super.key,
   });
+  final RoleTeachersControllerImp control =
+      Get.put(RoleTeachersControllerImp());
 
   @override
   Widget build(BuildContext context) {
     Get.put(RoleTeachersControllerImp());
     return Scaffold(
-        // floatingActionButton: FloatingActionButton(
-        //   onPressed: () {
-        //     Get.to(() => TestPackage(
-        //           source: HlsAudioSource(Uri()),
-        //           onDelete: () {},
-        //         ));
-        //   },
-        //   child: const Icon(Icons.add),
-        // ),
         backgroundColor: AppColors.primaryColor,
         appBar: AppBar(
           backgroundColor: AppColors.primaryColor,
@@ -38,17 +31,18 @@ class TeacherStudentsPage extends StatelessWidget {
             'الطلاب المرتبطين بك',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
+          actions: [
+            IconButton(
+                onPressed: () async {
+                  control.getStudents();
+                },
+                icon: const Icon(Icons.refresh))
+          ],
         ),
         body: GetBuilder<RoleTeachersControllerImp>(
             builder: (controller) => HandlingDataView(
                 statusRequest: controller.statusRequest,
-                widget:
-                    // controller.isLoading == true
-                    //     ? const Center(
-                    //         child: CircularProgressIndicator(),
-                    //       )
-                    //     :
-                    Column(
+                widget: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Expanded(

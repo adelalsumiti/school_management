@@ -379,7 +379,7 @@ class Crud {
   bool? allowBack;
   bool? isShowLoad;
   //
-  Future<Either<StatusRequest, Map>> postDataAccount(
+  Future<Either<StatusRequest, Map>> postAddEditDelete(
       String linkurl, Map data) async {
     try {
       // print("=data========$data===================");
@@ -554,7 +554,43 @@ class Crud {
       return const Left(StatusRequest.serverfailure);
     }
   }
+//
 
+  Future<Either<StatusRequest, dynamic>> getPlayAudio(String url) async {
+    try {
+      if (await checkInternet()) {
+        //
+        var response = await retry(
+          // Make a GET request
+//
+          () => http.head(Uri.parse(url)).timeout(const Duration(seconds: 15)),
+//
+          // () => http.get(Uri.parse(url)).timeout(const Duration(seconds: 15)),
+          // Retry on SocketException or TimeoutException
+          retryIf: (e) =>
+              e is SocketException ||
+              e is TimeoutException ||
+              e is http.ClientException,
+          onRetry: (e) {
+            log("$e", name: 'onRetry');
+          },
+        );
+        // final response = await http.get(Uri.parse(url));
+        if (response.statusCode == 200) {
+          return Right(await json.decode(response.body));
+        } else {
+          // return Left(Failure('Failed with status code: ${response.statusCode}'));
+          return const Left(StatusRequest.serverfailure);
+        }
+      }
+      return const Left(StatusRequest.serverfailure);
+    } catch (e) {
+      // return Left(Failure('Error: $e'));
+      return const Left(StatusRequest.serverfailure);
+    }
+  }
+
+//
   //
   Future<Either<StatusRequest, dynamic>> getData(String url) async {
     try {

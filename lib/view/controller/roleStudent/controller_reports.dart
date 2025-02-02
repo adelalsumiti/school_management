@@ -8,6 +8,7 @@ import 'package:flutter_sound/public/flutter_sound_recorder.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:school_management/core/class/statusrequest.dart';
+import 'package:school_management/core/constant/colors.dart';
 import 'package:school_management/core/funcations/handlinfdatacontroller.dart';
 import 'package:school_management/data/dataSource/remote/roleStudent/student_data.dart';
 import 'package:school_management/linkapi.dart';
@@ -16,7 +17,8 @@ import 'package:quran/quran.dart' as quran;
 import 'package:http/http.dart' as http;
 
 abstract class RoleStudentsReportController extends GetxController {
-  fetchReportStudent();
+  getReports();
+  deleteAudio(int? reportId, String? fieldName);
   initialData();
 }
 
@@ -27,7 +29,7 @@ class RoleStudentsReportControllerImp extends RoleStudentsReportController {
   int? studentId;
   late int teacherIdd;
   late StatusRequest statusRequest;
-  List<dynamic> reportStudentForRoleStudent = [];
+  List<dynamic> reportStudent = [];
   File? selectedPickFile;
   //
 
@@ -158,7 +160,7 @@ class RoleStudentsReportControllerImp extends RoleStudentsReportController {
   };
 
 //
-  Future<void> sendStudentAudioResponse(int reportId, File audioFile) async {
+  Future<void> sendAudioSt(int reportId, File audioFile) async {
     statusRequest = StatusRequest.loading;
     update();
 
@@ -186,7 +188,7 @@ class RoleStudentsReportControllerImp extends RoleStudentsReportController {
           Get.snackbar('نجاح', 'تم إرسال التسجيل بنجاح');
           print(
               'تم رفع الملف إلى: ${jsonResponse['file_path']}'); // طباعة المسار
-          fetchReportStudent(); // تحديث قائمة التقارير بعد الإرسال
+          getReports(); // تحديث قائمة التقارير بعد الإرسال
         } else {
           Get.snackbar('خطأ', jsonResponse['message']);
         }
@@ -205,7 +207,7 @@ class RoleStudentsReportControllerImp extends RoleStudentsReportController {
     try {
       await audioRecorder.openRecorder();
       Directory tempDir = await getTemporaryDirectory();
-      recordedFilePath = '${tempDir.path}/student_response.aac';
+      recordedFilePath = '${tempDir.path}/Rec_St.aac';
       await audioRecorder.startRecorder(toFile: recordedFilePath);
       Get.snackbar('نجاح', 'بدأ التسجيل');
       update();
@@ -321,22 +323,63 @@ class RoleStudentsReportControllerImp extends RoleStudentsReportController {
       Get.snackbar('خطأ', 'فشل في إرسال الملاحظة الصوتية');
     }
   }
+//
+
+  @override
+  void deleteAudio(int? reportId, String? fieldName) async {
+    // Future deleteAudio(int? reportId, String? fieldName) async {
+    Get.back();
+    update();
+    statusRequest = StatusRequest.loading;
+    update();
+
+    // try {
+
+    var response = await studentData.deleteAudio(
+        reportId?.toInt(), fieldName?.toString().trim());
+    statusRequest = await handlingData(response);
+    update();
+
+    // response is Map<String, dynamic>;
+
+    if (StatusRequest.success == statusRequest) {
+      //
+
+      if (response['success'] == true) {
+        Get.snackbar(
+          "نجاح",
+          'تم حذف الملف الصوتي بنجاح!',
+          backgroundColor: AppColors.backgroundIDsColor,
+          colorText: AppColors.primaryColor,
+          barBlur: 4,
+          animationDuration: const Duration(seconds: 5),
+        );
+        update();
+
+        await getReports(); // تحديث قائمة التقارير بعد الحذف
+        update();
+      }
+    } else {
+      statusRequest = StatusRequest.none;
+      throw Exception(response['message'] ?? 'فشل في حذف الملف الصوتي');
+    }
+  }
 
 //
   @override
-  fetchReportStudent() async {
+  getReports() async {
     statusRequest = StatusRequest.loading;
     update();
     try {
       prefs = await SharedPreferences.getInstance();
       studentId = prefs.getInt("id");
       update();
-      var response = await studentData.getDataReportStudent(studentId);
+      var response = await studentData.getDataReports(studentId);
       statusRequest = await handlingData(response);
       update();
       if (StatusRequest.success == statusRequest) {
         if (response['success']) {
-          reportStudentForRoleStudent = response['data'];
+          reportStudent = response['data'];
           update();
         } else {
           statusRequest = StatusRequest.offlinefailure;
@@ -365,7 +408,7 @@ class RoleStudentsReportControllerImp extends RoleStudentsReportController {
   @override
   initialData() async {
     statusRequest = StatusRequest.none;
-    fetchReportStudent();
+    getReports();
     await audioRecorder.openRecorder();
     await audioPlayer.openPlayer();
   }

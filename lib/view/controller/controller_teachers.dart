@@ -13,7 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:http/http.dart' as http;
 
 abstract class RoleTeachersController extends GetxController {
-  fetchTeacherStudents();
+  getStudents();
   initialData();
 }
 
@@ -36,7 +36,7 @@ class RoleTeachersControllerImp extends RoleTeachersController {
   ReportModel reportModel = ReportModel();
 
   @override
-  fetchTeacherStudents() async {
+  getStudents() async {
     statusRequest = StatusRequest.loading;
     // try {
     update();
@@ -74,7 +74,7 @@ class RoleTeachersControllerImp extends RoleTeachersController {
   @override
   initialData() {
     statusRequest = StatusRequest.none;
-    fetchTeacherStudents();
+    getStudents();
   }
 
   //

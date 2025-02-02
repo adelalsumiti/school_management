@@ -1,159 +1,267 @@
-// import 'dart:developer';
-
 // ignore_for_file: must_be_immutable
 
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mc_utils/mc_utils.dart';
 import 'package:school_management/core/class/handlingdataview.dart';
 import 'package:school_management/core/constant/colors.dart';
 import 'package:school_management/view/controller/controller_addReport.dart';
-// import 'package:school_management/view/screen/student/audioNoteDialog.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
-// import 'package:quran/quran.dart' as quran;
 
 class AddReportPage extends StatelessWidget {
   AddReportPage({
     super.key,
   });
-  AddReportControllerImp control = Get.put(AddReportControllerImp());
+  final AddReportControllerImp control = Get.put(AddReportControllerImp());
 
   @override
   Widget build(BuildContext context) {
     Get.put(AddReportControllerImp());
     // Get.arguments({studentId: "studentId", teacherId: "id"});
     return Scaffold(
+        floatingActionButton: FloatingActionButton.extended(
+          backgroundColor: AppColors.primaryColor,
+          label: const Text(
+            "حفظ التقرير",
+            style:
+                TextStyle(fontWeight: FontWeight.bold, color: AppColors.black),
+          ),
+          isExtended: true,
+          extendedPadding: const EdgeInsets.all(150),
+          onPressed: () async {
+            File? file = control.recordedFilePath != null
+                ? File(control.recordedFilePath!)
+                : null;
+            control.submitReport(file);
+            Get.back();
+
+            // control.submitReport(File(control.recordedFilePath!));
+          },
+        ),
         appBar: AppBar(title: const Text('إضافة تقرير')),
         body: GetBuilder<AddReportControllerImp>(
             builder: (controller) => HandlingDataView(
                   statusRequest: controller.statusRequest,
-                  widget:
-                      // controller.isLoading == true
-                      //     ? const Center(
-                      //         child: CircularProgressIndicator(),
-                      //       )
-                      // :
-                      Padding(
+                  widget: Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Visibility(
-                      visible: true,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          McDropDownBtn<String?>(
-                            hintStyle: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 15),
-                            listItemStyle: const TextStyle(
-                                decorationColor: AppColors.primaryColor,
-                                fontSize: 15),
-                            headerStyle: const TextStyle(fontSize: 18),
-                            radius: 15,
-                            color: AppColors.primaryColor,
-                            title: "التقييم",
-                            list: controller.items,
-                            model: controller.selectedAssessment,
-                            onChange: (p0) =>
-                                controller.selectedAssessment = p0,
+                    child: Wrap(
+                      // spacing: 5,
+                      runSpacing: 5,
+                      children: [
+                        McDropDownBtn<String?>(
+                          hintStyle: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 15),
+                          listItemStyle: const TextStyle(
+                              decorationColor: AppColors.primaryColor,
+                              fontSize: 15),
+                          headerStyle: const TextStyle(fontSize: 18),
+                          radius: 15,
+                          color: AppColors.primaryColor,
+                          title: "التقييم",
+                          list: controller.items,
+                          model: controller.selectedAssessment,
+                          onChange: (p0) => controller.selectedAssessment = p0,
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.only(right: 5, left: 5),
+                          decoration: BoxDecoration(
+                              color: AppColors.primaryColor,
+                              borderRadius: BorderRadius.circular(15)),
+                          child: TextFormField(
+                            cursorRadius: const Radius.circular(20),
+                            cursorColor: AppColors.primaryColor,
+                            strutStyle: const StrutStyle(),
+                            controller: controller.noteController,
+                            decoration: const InputDecoration(
+                                labelText: '   اضغط لكتابة ملاحظة'),
                           ),
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          Container(
-                            margin: const EdgeInsets.only(bottom: 10),
-                            padding: const EdgeInsets.only(right: 5, left: 5),
-                            decoration: BoxDecoration(
-                                color: AppColors.primaryColor,
-                                borderRadius: BorderRadius.circular(15)),
-                            child: TextFormField(
-                              // enableInteractiveSelection: false,
-                              // enableIMEPersonalizedLearning: false,
-                              // enableSuggestions: false,
-                              cursorRadius: const Radius.circular(20),
-                              cursorColor: AppColors.primaryColor,
-                              // enableSuggestions: true,
-                              // showCursor: true,
-
-                              strutStyle: const StrutStyle(),
-                              controller: controller.noteController,
-                              decoration: const InputDecoration(
-                                  labelText: '   اضغط لكتابة ملاحظة'),
+                        ),
+                        Wrap(
+                          children: [
+                            IconButton(
+                              iconSize: 30,
+                              icon: Icon(controller.isRecording
+                                  ? Icons.pause_presentation_sharp
+                                  : Icons.mic),
+                              style: ButtonStyle(
+                                  backgroundColor: const WidgetStatePropertyAll(
+                                      AppColors.actionColor),
+                                  alignment: Alignment.center,
+                                  iconColor: WidgetStateProperty.all(
+                                      controller.isRecording
+                                          ? AppColors.backgroundIDsColor
+                                          : AppColors.backgroundIDsColor)),
+                              onPressed: () async {
+                                if (controller.isRecording) {
+                                  controller.stopRecording();
+                                  controller.isRecording = false;
+                                } else {
+                                  controller.startRecording();
+                                  controller.isRecording = true;
+                                }
+                              },
                             ),
-                          ),
-                          McButton(
-                              colorBorder: AppColors.black,
-                              colorBtn: AppColors.primaryColor,
-                              onTap: () async {
-                                await controller.pickFile();
-                              },
-                              blod: true,
-                              txt: 'تحميل ملف'),
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          McButton(
-                              colorBorder: AppColors.black,
-                              colorBtn: AppColors.primaryColor,
-                              onTap: () async {
-                                // showAudioNoteDialog(context);
-                                // Get.to(() => const RecordingScreen());
-                                // await controller.recordAudio();
-                              },
-                              blod: true,
-                              txt: 'تسجيل ملاحظة صوتية'),
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          McButton(
-                              colorBorder: AppColors.black,
-                              colorBtn: AppColors.primaryColor,
-                              onTap: () async {
-                                await controller.pickFile();
-                              },
-                              blod: true,
-                              txt: 'تحميل ملف'),
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          McButton(
-                              colorBorder: AppColors.black,
-                              colorBtn: AppColors.primaryColor,
-                              onTap: () =>
-                                  controller.showQuranSelectionDialog(context),
-                              blod: true,
-                              txt: 'اختيار الحفظ'),
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          McButton(
-                              colorBorder: AppColors.black,
-                              colorBtn: AppColors.primaryColor,
-                              onTap: () => controller
-                                  .showQuranReviewSelectionDialog(context),
-                              blod: true,
-                              txt: 'اختيار المراجعة'),
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          const Spacer(),
-                          McButton(
-                              colorBorder: AppColors.black,
-                              colorBtn: AppColors.primaryColor,
-                              onTap: () async {
-                                controller.submitReport();
-                              },
-                              blod: true,
-                              txt: 'حفظ التقرير'),
-                          const SizedBox(
-                            height: 10,
-                          ),
+                            // if (controller.recordedFilePath != null)
+                            // ElevatedButton(
+                            //   onPressed: () async {
+                            //     await controller.submitReport(
+                            //         // controller.selectedFile;
+                            //         // File(controller.recordedFilePath!.path);
+                            //         File(controller.recordedFilePath!));
 
-                          //
-                        ],
-                      ),
+                            //     // ));
+                            //     // controller.update();
+                            //   },
+
+                            //   // onPressed: () async {
+                            //   //   await controller.submitReport(File(
+                            //   //       controller.recordedFilePath!.toString()));
+                            //   //   // await controller.sendTeacherAudio(
+                            //   //   // report['id'],
+                            //   //   // File(controller.recordedFilePath!),
+                            //   //   // );
+                            //   // },
+                            //   style: const ButtonStyle(
+                            //       backgroundColor: WidgetStatePropertyAll(
+                            //           AppColors.actionColor)),
+                            //   child: const Text(
+                            //     'إرسال التسجيل',
+                            //     style: TextStyle(
+                            //         color: AppColors.backgroundIDsColor,
+                            //         fontWeight: FontWeight.bold,
+                            //         fontSize: 15),
+                            //   ),
+                            // ),
+
+                            //
+
+                            // ElevatedButton(
+                            //   onPressed: () async {
+                            //     FilePickerResult? result =
+                            //         await FilePicker.platform.pickFiles(
+                            //       type: FileType.audio,
+                            //     );
+
+                            //     if (result != null) {
+                            //       File fileRecord =
+                            //           File(result.files.single.path!);
+                            //       await controller.submitReport(fileRecord);
+                            //     } else {
+                            //       Get.snackbar('خطأ', 'لم يتم اختيار ملف');
+                            //     }
+                            //   },
+                            //   child: const Text('رفع تسجيل صوتي'),
+                            // ),
+                          ],
+                        ),
+                        // McButton(
+                        //     colorBorder: AppColors.black,
+                        //     colorBtn: AppColors.primaryColor,
+                        //     onTap: () async {
+                        //       // showAudioNoteDialog(context);
+                        //       // Get.to(() => const RecordingScreen());
+                        //       // await controller.recordAudio();
+                        //     },
+                        //     blod: true,
+                        //     txt: 'تسجيل ملاحظة صوتية'),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        ElevatedButton(
+                          onPressed: () async {
+                            FilePickerResult? result =
+                                await FilePicker.platform.pickFiles(
+                              type: FileType.audio,
+                            );
+
+                            if (result != null) {
+                              PlatformFile file = result.files.first;
+                              print("File path: ${file.path}");
+                              // هنا يمكنك استخدام المسار لرفع الملف إلى السيرفر
+                            } else {
+                              print("No file selected");
+
+                              String file = (controller.recordedFilePath!);
+                              await controller.submitReport(File(file));
+                              // }
+                              // file, File(controller.selectedFile!));
+                              // File(controller.recordedFilePath!)
+                              // File(controller.selectedFile!)
+                              // );
+                              // } else {
+                              //   Get.snackbar('خطأ', 'لم يتم اختيار ملف');
+                            }
+                          },
+                          child: const Text('رفع تسجيل صوتي'),
+                        ),
+                        // McButton(
+                        //     colorBorder: AppColors.black,
+                        //     colorBtn: AppColors.primaryColor,
+                        //     onTap: () async {
+                        //       await controller.pickFile();
+                        //     },
+                        //     blod: true,
+                        //     txt: 'تحميل ملف'),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        McButton(
+                            colorBorder: AppColors.black,
+                            colorBtn: AppColors.primaryColor,
+                            onTap: () =>
+                                controller.showQuranSelectionDialog(context),
+                            blod: true,
+                            txt: 'اختيار الحفظ'),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        McButton(
+                            colorBorder: AppColors.black,
+                            colorBtn: AppColors.primaryColor,
+                            onTap: () => controller
+                                .showQuranReviewSelectionDialog(context),
+                            blod: true,
+                            txt: 'اختيار المراجعة'),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        // const Spacer(),
+
+                        // Container(
+                        //   width: Get.width,
+                        //   decoration: BoxDecoration(
+                        //       color: AppColors.primaryColor,
+                        //       borderRadius: BorderRadius.circular(20)),
+                        //   child: TextButton(
+                        //       onPressed: () async {
+                        //         File? file = controller.recordedFilePath != null
+                        //             ? File(controller.recordedFilePath!)
+                        //             : null;
+                        //         controller.submitReport(file);
+                        //       },
+                        //       child: const Text(
+                        //         "حفظ التقرير",
+                        //         style: TextStyle(
+                        //             fontWeight: FontWeight.bold,
+                        //             color: AppColors.black),
+                        //       )),
+                        // ),
+
+                        // const SizedBox(
+                        //   height: 10,
+                        // ),
+
+                        //
+                      ],
                     ),
                   ),
+                  // ),
                 )));
   }
-
- 
 }

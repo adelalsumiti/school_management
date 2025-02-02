@@ -46,7 +46,7 @@ class StudentsData {
     String? selectedStudent,
     String? selectedClass,
   ) async {
-    var response = await crud.postDataAccount(AppLink.addStudentToClass, {
+    var response = await crud.postAddEditDelete(AppLink.addStudentToClass, {
       'student_id': selectedStudent,
       'class_id': selectedClass,
     });
@@ -67,7 +67,7 @@ class StudentsData {
     String? nameController,
     String? studentId,
   ) async {
-    var response = await crud.postDataAccount(
+    var response = await crud.postAddEditDelete(
         AppLink.editClass, {'id': studentId, 'className': nameController});
     print(
         '===============AddStudent nameController ==>  : $nameController ===========');
@@ -83,7 +83,7 @@ class StudentsData {
   // Delete Student
   deleteStudent(String studentId) async {
     var response =
-        await crud.postDataAccount(AppLink.deleteStudent, {'id': studentId});
+        await crud.postAddEditDelete(AppLink.deleteStudent, {'id': studentId});
     print(
         '=============== Student_Data__Delete_Student  ID  : $studentId ===========');
     print(

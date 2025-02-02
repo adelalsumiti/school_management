@@ -9,7 +9,7 @@ class StudentData {
   //
 
   // fetch: Report => Student
-  getDataReportStudent(
+  getDataReports(
     int? studentId,
   ) async {
     var response = await crud.getData(
@@ -17,7 +17,7 @@ class StudentData {
     );
     print('=============== Student ID: $studentId');
     print(
-        '=============== StudentData getDataReportStudentForRoleStudent : $response ===========');
+        '=============== StudentData getDataReports For Role Student : $response ===========');
     return response.fold((l) => l, (r) => r);
   }
   //
@@ -41,6 +41,17 @@ class StudentData {
     print('=============== StudentData DeleteRecord ID: $idRecord =======');
     print('=============== StudentData DeleteRecord : $response ===========');
 
+    return response.fold((l) => l, (r) => r);
+  }
+
+  Future deleteAudio(int? reportId, String? fieldName) async {
+    var response = await crud.postAddEditDelete(AppLink.deleteRecord, {
+      'report_id': reportId.toString(),
+      'field_name': fieldName,
+    });
+    print('=============== deleteAudio ReportId ID: $reportId =======');
+    print('=============== deleteAudio fieldName : $fieldName ===========');
+    print('=============== deleteAudio response ID: $response =======');
     return response.fold((l) => l, (r) => r);
   }
 }

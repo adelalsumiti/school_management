@@ -15,12 +15,10 @@ import 'package:school_management/view/screen/admin/students/manageStudentsPage.
 import 'package:school_management/view/screen/student/studentReportsPage.dart';
 import 'package:school_management/view/screen/teacher/addReport.dart';
 import 'package:school_management/view/screen/teacher/detaileReport.dart';
-import 'package:school_management/view/screen/teacher/studentDetailes.dart';
 import 'package:school_management/view/screen/teacher/studentPerformance.dart';
 import 'package:school_management/view/screen/teacher/teachersStudents.dart';
 import 'package:school_management/view/screen/teacher/viewPerformance.dart';
 import 'package:school_management/view/screen/admin/teachers/addTeacherPage.dart';
-import 'package:school_management/view/screen/admin/teachers/editTeacherPage.dart';
 import 'package:school_management/view/screen/admin/teachers/manageTeachers.dart';
 import 'package:school_management/view/screen/teacher/teacherDashboardPage.dart';
 
@@ -49,20 +47,24 @@ List<GetPage<dynamic>>? routes = [
   //         )),
   GetPage(name: AppRoute.manageTeachersPage, page: () => ManageTeachersPage()),
 
+  //
+  //
+
+  // GetPage(name: AppRoute.manageTeachersPage, page: () => ManageTeachersPage()),
+  // GetPage(name: AppRoute.manageTeachersPage, page: () => ManageTeachersPage()),
+  // GetPage(name: AppRoute.manageTeachersPage, page: () => ManageTeachersPage()),
+  // GetPage(name: AppRoute.manageTeachersPage, page: () => ManageTeachersPage()),
+
   // =====Account Teacher ======
   GetPage(
       name: AppRoute.teacherDashboardPage,
       page: () => const TeacherDashboardPage()),
-  GetPage(
-      name: AppRoute.studentDetailesPage,
-      page: () => const StudentDetailsPage()),
   GetPage(name: AppRoute.addReportPage, page: () => AddReportPage()),
   GetPage(name: AppRoute.detailReport, page: () => DetailReport()),
   GetPage(name: AppRoute.manageParentsPage, page: () => ManageParentsPage()),
   GetPage(name: AppRoute.addParentPage, page: () => const AddParentPage()),
   GetPage(
-      name: AppRoute.teacherStudentsPage,
-      page: () => const TeacherStudentsPage()),
+      name: AppRoute.teacherStudentsPage, page: () => TeacherStudentsPage()),
 
   //  // Classes ==========
 

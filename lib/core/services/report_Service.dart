@@ -1,10 +1,13 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 // import 'dart:io';
+import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:retry/retry.dart';
 import 'package:school_management/data/model/report_Model.dart';
 import 'package:school_management/linkapi.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -53,7 +56,17 @@ class ReportService extends GetxService {
   Future<Map<String, dynamic>> sendReport(ReportModel reportModel) async {
     final url = Uri.parse(AppLink.addReport);
 
-    var request = http.MultipartRequest('POST', url);
+    var request = await retry(() => http.MultipartRequest('POST', url),
+        // .timeout(
+        // const Duration(seconds: 15),
+        retryIf: (e) =>
+            e is SocketException ||
+            e is TimeoutException ||
+            e is http.ClientException,
+        onRetry: (e) {
+          log("$e", name: 'onRetry');
+        });
+    // var request = http.MultipartRequest('POST', url);
 
     // إضافة الحقول من الكائن
     request.fields['student_id'] = reportModel.studentId.toString();
@@ -70,19 +83,28 @@ class ReportService extends GetxService {
     request.fields['endVerseReview'] = reportModel.endVerseReview.toString();
 
     if (reportModel.audioNotePath != null) {
+      //
+
+      // request.fields['audio_note_path'] = reportModel.audioNotePath.toString();
+      // request.files.add(
+      //   await http.MultipartFile.fromPath(
+      //       'audio_note_path', reportModel.audioNotePath!.path),
+      // );
+
+      //
       request.files.add(await http.MultipartFile.fromPath(
         // 'audio_note',
         'audio_note_path',
-        reportModel.audioNotePath!.path,
+        reportModel.audioNotePath!,
       ));
     }
 
     // إضافة الملفات إذا كانت موجودة
     if (reportModel.filePath != null) {
       request.files.add(await http.MultipartFile.fromPath(
-        'file',
+        'file_path',
         // reportModel.filePath!.path,
-        reportModel.filePath!.path,
+        reportModel.filePath!,
       ));
     }
 
@@ -96,7 +118,7 @@ class ReportService extends GetxService {
     // }
 
     try {
-      final response = await request.send();
+      var response = await request.send();
 
       if (response.statusCode == 200) {
         final responseBody = await response.stream.bytesToString();

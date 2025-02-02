@@ -1,13 +1,14 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
-// import 'dart:typed_data';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+// import 'package:flutter/services.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:school_management/core/class/curd.dart';
 import 'package:school_management/core/class/statusrequest.dart';
 // import 'package:permission_handler/permission_handler.dart';
 import 'package:school_management/core/constant/colors.dart';
@@ -21,11 +22,10 @@ import 'package:http/http.dart' as http;
 import 'package:quran/quran.dart' as quran;
 
 abstract class AddReportController extends GetxController {
-  // sendReport();
-
-  submitReport();
-  deleteReport(int id);
-  fetchReportTeacher();
+  submitReport(File? audioFile);
+  // deleteReport(int? id);
+  deleteAudio(int? reportId, String? fieldName);
+  getReports();
   initialData();
 }
 
@@ -38,13 +38,14 @@ class AddReportControllerImp extends AddReportController {
   String? selectedSurah;
   String? selectedSurahReview;
   TextEditingController noteController = TextEditingController();
-  File? selectedFile;
+  String? selectedFile;
+  Crud crud = Crud();
+  // File? selectedFile;
   // File? audioFile;
   // int? reportId;
   late int studentIdd;
   late int reportId;
-  late int studentIdInRoleTeacher;
-  int? studentIdInRoleStudent;
+  late int studentId;
   late int teacherIdd;
   late int teacherId;
   late int classIdd;
@@ -54,17 +55,17 @@ class AddReportControllerImp extends AddReportController {
   late int startVerseReview;
   late int endVerseReview;
   late StatusRequest statusRequest;
-  List<dynamic> reportStudentForRoleTeacher = [];
+  List<dynamic> reportStudents = [];
   int? userId;
   File? selectedPickFile;
   List<String> items = ['ممتاز', 'جيد', 'متوسط', 'ضعيف'];
   // FlutterSoundRecorder? audioRecorder;
-  late String audioFilePath;
+  // String? audioFilePath;
   //
 
-  final FlutterSoundRecorder audioRecorder = FlutterSoundRecorder();
+  FlutterSoundRecorder audioRecorder = FlutterSoundRecorder();
   // FlutterSoundPlayer audioPlayer = FlutterSoundPlayer();
-  final FlutterSoundPlayer audioPlayer = FlutterSoundPlayer();
+  FlutterSoundPlayer audioPlayer = FlutterSoundPlayer();
   bool isRecording = false;
   String? recordedFilePath;
 
@@ -99,7 +100,7 @@ class AddReportControllerImp extends AddReportController {
           Get.snackbar('نجاح', 'تم إرسال التسجيل بنجاح');
           print(
               'تم رفع الملف إلى: ${jsonResponse['file_path']}'); // طباعة المسار
-          fetchReportTeacher(); // تحديث قائمة التقارير بعد الإرسال
+          getReports(); // تحديث قائمة التقارير بعد الإرسال
         } else {
           Get.snackbar('خطأ', jsonResponse['message']);
         }
@@ -116,9 +117,10 @@ class AddReportControllerImp extends AddReportController {
 
   Future<void> startRecording() async {
     try {
+      await requestMicrophonePermission();
       await audioRecorder.openRecorder();
       Directory tempDir = await getTemporaryDirectory();
-      recordedFilePath = '${tempDir.path}/teacher_audio.aac';
+      recordedFilePath = '${tempDir.path}/recTe.aac';
       await audioRecorder.startRecorder(toFile: recordedFilePath);
       Get.snackbar('نجاح', 'بدأ التسجيل');
       update();
@@ -149,33 +151,73 @@ class AddReportControllerImp extends AddReportController {
     }
   }
 
-  void playAudio(String filePath) async {
-    //
+//
+  Future<void> requestMicrophonePermission() async {
+    var status = await Permission.microphone.status;
+    if (!status.isGranted) {
+      status = await Permission.microphone.request();
+      if (!status.isGranted) {
+        throw Exception(' من فضلك فعل أذونات الميكرفون اولا');
+      }
+    }
+  }
+
+//
+  playAudio(String filePath) async {
+    statusRequest = StatusRequest.loading;
+    update();
+    String fullPath = '${AppLink.upload}$filePath';
     try {
-      // إضافة المسار الكامل إذا كان المسار غير كامل
-      String fullPath = '${AppLink.upload}$filePath';
-
-      // التحقق من وجود الملف على السيرفر
-      final response = await http.head(Uri.parse(fullPath));
-      if (response.statusCode == 200) {
+      var response = await reportData.getPlayAudio(fullPath);
+      statusRequest = await handlingData(response);
+      update();
+      if (StatusRequest.success == statusRequest) {
+        //  update();
         // تأكد من أن المشغل مفتوح
-        if (!(audioPlayer.isPlaying)) {
+        if (!audioPlayer.isPlaying) {
           await audioPlayer.openPlayer();
+          update();
+        } else {
+          await audioPlayer.closePlayer();
+          update();
         }
-
+        // update();
         // تشغيل الصوت باستخدام المسار الكامل
         await audioPlayer.startPlayer(fromURI: fullPath);
+        update();
+
         Get.snackbar('نجاح', 'بدأ تشغيل التسجيل');
+        // if (audioPlayer.isPaused) {
+        if (audioPlayer.isPlaying) {
+          await audioPlayer.openPlayer();
+          update();
+
+          // audioPlayer.isStopped;
+        } else if (!audioPlayer.isPaused) {
+          // await audioPlayer.closePlayer();
+          await audioPlayer.closePlayer();
+
+          update();
+        } else {
+          // if (!audioPlayer.isPlaying) {
+          // await audioPlayer.closePlayer();
+          await audioPlayer.stopPlayer();
+
+          update();
+        }
+        update();
       } else {
         Get.snackbar('خطأ', 'الملف غير موجود');
         // Get.snackbar('خطأ', 'الملف غير موجود: $fullPath');
         log('خطأ', error: 'الملف غير موجود: $fullPath');
       }
+
+      statusRequest = StatusRequest.none;
+      update();
     } catch (e) {
       Get.snackbar('خطأ', 'فشل في تشغيل التسجيل: $e');
     }
   }
-  //
 
   // خريطة تربط أسماء السور بأرقامها
   final Map<String, int> surahMap = {
@@ -308,68 +350,124 @@ class AddReportControllerImp extends AddReportController {
     return verses;
   }
 
-//
+  //
+
   @override
-  deleteReport(int id) async {
+  void deleteAudio(int? reportId, String? fieldName) async {
+    // Future deleteAudio(int? reportId, String? fieldName) async {
+    Get.back();
+    update();
+    statusRequest = StatusRequest.loading;
+    update();
+
+    // try {
+
+    var response = await reportData.deleteAudio(
+        reportId?.toInt(), fieldName?.toString().trim());
+    statusRequest = await handlingData(response);
+    update();
+
+    // response is Map<String, dynamic>;
+
+    if (StatusRequest.success == statusRequest) {
+      //
+
+      if (response['success'] == true) {
+        Get.snackbar(
+          "نجاح",
+          'تم حذف الملف الصوتي بنجاح!',
+          backgroundColor: AppColors.backgroundIDsColor,
+          colorText: AppColors.primaryColor,
+          barBlur: 4,
+          animationDuration: const Duration(seconds: 5),
+        );
+        update();
+
+        await getReports(); // تحديث قائمة التقارير بعد الحذف
+        update();
+      }
+    } else {
+      statusRequest = StatusRequest.none;
+      throw Exception(response['message'] ?? 'فشل في حذف الملف الصوتي');
+    }
+    // } catch (e) {
+    //   Get.snackbar(
+    //     'لا يمكن الحذف',
+    //     'الملف مرتبط ببيانات أخرى',
+    //     backgroundColor: AppColors.primaryColor,
+    //     colorText: AppColors.backgroundIDsColor,
+    //     animationDuration: const Duration(seconds: 5),
+    //   );
+    // } finally {
+    //   statusRequest = StatusRequest.none;
+    //   update();
+    // }
+  }
+
+//
+  // @override
+  deleteReport(int? id) async {
     // Get.back();
 
-    statusRequest = StatusRequest.loading;
-
+    // try {
+    Get.back();
     update();
-    try {
-      Get.back();
-      update();
-      statusRequest = StatusRequest.loading;
+    statusRequest = StatusRequest.loading;
+    update();
+    // Get.back();
+    update();
 
-      var response = reportData.deleteReport(id);
-      statusRequest = handlingData(response);
-      if (StatusRequest.success == statusRequest) {
-        if (response is Map<String, dynamic>) {
-          if (response['success'] == true) {
-            Get.snackbar(
-              "نجاح",
-              'تم حذف التقرير بنجاح !',
-              backgroundColor: AppColors.backgroundIDsColor,
-              colorText: AppColors.primaryColor,
-              barBlur: 4,
-              animationDuration: const Duration(seconds: 5),
-            );
-            await fetchReportTeacher();
-            update();
-            // hasData = true;
-          }
-          statusRequest = StatusRequest.loading;
-          update();
-        }
-      } else {
-        statusRequest = StatusRequest.none;
-        throw Exception(response['message'] ?? 'فشل في حذف التقرير');
+    var response = await reportData.deleteReport(id?.toInt());
+    statusRequest = await handlingData(response);
+    update();
+    if (StatusRequest.success == statusRequest) {
+      // if (response is Map<String, dynamic>) {
+      if (response['success'] == true) {
+        Get.snackbar(
+          "نجاح",
+          'تم حذف التقرير بنجاح !',
+          backgroundColor: AppColors.backgroundIDsColor,
+          colorText: AppColors.primaryColor,
+          barBlur: 4,
+          // animationDuration: const Duration(seconds: 5),
+        );
+        await getReports();
+        update();
+        // hasData = true;
+        // }
+        // statusRequest = StatusRequest.loading;
+        // update();
       }
-    } catch (e) {
-      Get.snackbar(
-        'لايمكن الحذف',
-        'مرتبط ببيانات أخرى',
-        backgroundColor: AppColors.primaryColor,
-        colorText: AppColors.backgroundIDsColor,
-        animationDuration: const Duration(seconds: 5),
-      );
+    } else {
+      statusRequest = StatusRequest.none;
+      throw Exception(response['message'] ?? 'فشل في حذف التقرير');
     }
+    // } catch (e) {
+    //   Get.snackbar(
+    //     'لايمكن الحذف',
+    //     'مرتبط ببيانات أخرى',
+    //     backgroundColor: AppColors.primaryColor,
+    //     colorText: AppColors.backgroundIDsColor,
+    //     animationDuration: const Duration(seconds: 5),
+    //   );
+    // }
+    statusRequest = StatusRequest.none;
+    update();
   }
 
 // //
 
   @override
-  fetchReportTeacher() async {
+  getReports() async {
     statusRequest = StatusRequest.loading;
     update();
 
     try {
       update();
       prefs = await SharedPreferences.getInstance();
-      studentIdInRoleTeacher = prefs.getInt("student_id")!;
+      studentId = prefs.getInt("student_id")!;
       // جلب البيانات
-      var response = await reportData
-          .getDataReportTeachereStudents(studentIdInRoleTeacher);
+      var response = await reportData.getDataReport(studentId);
       statusRequest = handlingData(await response);
 
       if (StatusRequest.success == statusRequest) {
@@ -377,8 +475,8 @@ class AddReportControllerImp extends AddReportController {
 
         if (await response['success'] == true) {
           response is Map<String, dynamic>;
-          log("studentIdInRoleTeacher", error: studentIdInRoleTeacher);
-          reportStudentForRoleTeacher = await response['data'];
+          log("studentId", error: studentId);
+          reportStudents = await response['data'];
           update();
           // hasData = true;
         } else {
@@ -399,63 +497,78 @@ class AddReportControllerImp extends AddReportController {
 
 //
   @override
-  submitReport() async {
+  submitReport(File? audioFile) async {
     statusRequest = StatusRequest.loading;
     update();
-    // if (selectedAssessment != null) {
-    try {
-      prefs = await SharedPreferences.getInstance();
-      studentIdd = prefs.getInt("student_id")!;
-      classIdd = prefs.getInt("class_id")!;
-      teacherIdd = prefs.getInt("id")!;
-      startVersee = prefs.getInt("startVerse") ?? 0;
-      endVersee = prefs.getInt("endVerse") ?? 0;
-      selectedSurah = prefs.getString("surah");
-      startVerseReview = prefs.getInt("startVerseReview") ?? 0;
-      endVerseReview = prefs.getInt("endVerseReview") ?? 0;
-      selectedSurahReview = prefs.getString("surahReview");
+    // try {
+    prefs = await SharedPreferences.getInstance();
+    studentIdd = prefs.getInt("student_id")!;
+    classIdd = prefs.getInt("class_id")!;
+    teacherIdd = prefs.getInt("id")!;
+    startVersee = prefs.getInt("startVerse") ?? 0;
+    endVersee = prefs.getInt("endVerse") ?? 0;
+    selectedSurah = prefs.getString("surah");
+    startVerseReview = prefs.getInt("startVerseReview") ?? 0;
+    endVerseReview = prefs.getInt("endVerseReview") ?? 0;
+    selectedSurahReview = prefs.getString("surahReview");
 
-      log("$selectedSurah", name: 'selectedSurah', error: selectedSurah);
-      log("$startVersee", name: 'startVersee', error: startVersee);
-      log("$endVersee", name: 'endVersee', error: endVersee);
-      log("$selectedSurahReview",
-          name: 'selectedSurahReview', error: selectedSurahReview);
-      log("$startVerseReview",
-          name: 'startVerseReview', error: startVerseReview);
-      log("$endVerseReview", name: 'endVerseReview', error: endVerseReview);
-      log("selectedAssessment", error: selectedAssessment);
-      log("reportModel.assessment", error: reportModel.assessment);
-      // final response = await reportService.sendReport(reportModel);
-      var response = await reportService.sendReport(ReportModel(
-        studentId: studentIdd,
-        classId: classIdd,
-        teacherId: teacherIdd,
-        surahReview: selectedSurahReview,
-        startVerseReview: startVerseReview,
-        endVerseReview: endVerseReview,
-        surah: selectedSurah,
-        startVerse: startVersee,
-        endVerse: endVersee,
-        assessment: selectedAssessment,
-        note: noteController.text,
-        // filePath: selectedFile,
-        // audioNotePath: audioFile,
-      ));
+    // log("$selectedSurah", name: 'selectedSurah', error: selectedSurah);
+    // log("$startVersee", name: 'startVersee', error: startVersee);
+    // log("$endVersee", name: 'endVersee', error: endVersee);
+    // log("$selectedSurahReview",
+    //     name: 'selectedSurahReview', error: selectedSurahReview);
+    // log("$startVerseReview",
+    //     name: 'startVerseReview', error: startVerseReview);
+    // log("$endVerseReview", name: 'endVerseReview', error: endVerseReview);
+    // log("selectedAssessment", error: selectedAssessment);
+    // log("reportModel.assessment", error: reportModel.assessment);
+    // final response = await reportService.sendReport(reportModel);
+    final response = await reportService.sendReport(ReportModel(
+      studentId: studentIdd,
+      classId: classIdd,
+      teacherId: teacherIdd,
+      surahReview: selectedSurahReview,
+      startVerseReview: startVerseReview,
+      endVerseReview: endVerseReview,
+      surah: selectedSurah,
+      startVerse: startVersee,
+      endVerse: endVersee,
+      assessment: selectedAssessment,
+      note: noteController.text,
+      audioNotePath: audioFile?.path,
+      filePath: audioFile?.path,
+      // filePath: selectedFile!.path,
+      // studentAudioResponsePath: audioFile!.path,
 
-      if (response['success']) {
+      // audioNotePath: audioFile,
+    ));
+    statusRequest = await handlingData(response);
+    // log("audioNotePath", error: audioFile);
+    update();
+    if (StatusRequest.success == statusRequest) {
+      if (response['success'] == true) {
+        statusRequest = StatusRequest.none;
+        update();
+        Get.snackbar(
+          "نجاح",
+          "تم أضافة التقرير بنجاح",
+          backgroundColor: AppColors.primaryColor,
+          colorText: AppColors.backgroundIDsColor,
+          animationDuration: const Duration(seconds: 5),
+        );
         prefs = await SharedPreferences.getInstance();
-        await prefs.remove('student_id');
-        await prefs.remove('class_id');
+        update();
+
+        // await prefs.remove('student_id');
+        // await prefs.remove('class_id');
         await prefs.remove('surah');
         await prefs.remove('startVerse');
         await prefs.remove('endVerse');
         await prefs.remove('surahReview');
         await prefs.remove('startVerseReview');
         await prefs.remove('endVerseReview');
-        statusRequest = StatusRequest.none;
+        await getReports();
         update();
-        // Navigator.pop(context, true);
-        Get.back(result: true);
       } else {
         statusRequest = StatusRequest.failure;
         update();
@@ -469,11 +582,10 @@ class AddReportControllerImp extends AddReportController {
         );
         // statusRequest = StatusRequest.none;
       }
-      statusRequest = StatusRequest.none;
-    } catch (e) {
-      log("message => e", error: e);
-      return e;
     }
+
+    statusRequest = StatusRequest.none;
+    update();
   }
 
   // @override
@@ -542,6 +654,7 @@ class AddReportControllerImp extends AddReportController {
     statusRequest = StatusRequest.none;
     update();
     initialData();
+
     // prefs = await SharedPreferences.getInstance();
     super.onInit();
   }
@@ -550,12 +663,13 @@ class AddReportControllerImp extends AddReportController {
   @override
   initialData() async {
     statusRequest = StatusRequest.none;
-    reportModel = ReportModel();
-    reportService = ReportService();
-    fetchReportTeacher();
 
-    await audioRecorder.openRecorder();
-    await audioPlayer.openPlayer();
+    // reportModel = ReportModel();
+    // reportService = ReportService();
+    getReports();
+
+    // await audioRecorder.openRecorder();
+    // await audioPlayer.openPlayer();
   }
 
   //

@@ -34,7 +34,7 @@ class FathersData {
     String? selectedStudent,
     String? selectedFather,
   ) async {
-    var response = await crud.postDataAccount(AppLink.saveParentStudent, {
+    var response = await crud.postAddEditDelete(AppLink.saveParentStudent, {
       'parent_id': selectedFather,
       'student_id': selectedStudent,
     });
@@ -55,7 +55,7 @@ class FathersData {
     String? nameController,
     String? studentId,
   ) async {
-    var response = await crud.postDataAccount(
+    var response = await crud.postAddEditDelete(
         AppLink.editClass, {'id': studentId, 'className': nameController});
     print(
         '===============AddFather nameController ==>  : $nameController ===========');
@@ -70,7 +70,7 @@ class FathersData {
   // Delete Father
   deleteFather(String fatherId) async {
     var response = await crud
-        .postDataAccount(AppLink.deleteParentFromStudent, {'id': fatherId});
+        .postAddEditDelete(AppLink.deleteParentFromStudent, {'id': fatherId});
     print(
         '=============== Father_Data__Delete_Father  ID  : $fatherId ===========');
     print('===============Delete_Father Father_Data  : $response ===========');

@@ -1,6 +1,3 @@
-// import 'package:fatorty/core/class/crud.dart';
-
-import 'package:flutter/material.dart';
 import 'package:school_management/core/class/curd.dart';
 import 'package:school_management/linkapi.dart';
 

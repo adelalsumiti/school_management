@@ -21,7 +21,7 @@ class AccountsData {
 
 // updateAccount
   updateAccount(int? accountId, String action) async {
-    var response = await crud.postDataAccount(AppLink.updateAccountStatus, {
+    var response = await crud.postAddEditDelete(AppLink.updateAccountStatus, {
       'accountId': accountId.toString(),
       'action': action, // "accept" أو "delete" أو "block"
     });
