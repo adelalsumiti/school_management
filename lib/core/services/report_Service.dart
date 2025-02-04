@@ -83,15 +83,8 @@ class ReportService extends GetxService {
     request.fields['endVerseReview'] = reportModel.endVerseReview.toString();
 
     if (reportModel.audioNotePath != null) {
-      //
-
-      // request.fields['audio_note_path'] = reportModel.audioNotePath.toString();
-      // request.files.add(
-      //   await http.MultipartFile.fromPath(
-      //       'audio_note_path', reportModel.audioNotePath!.path),
-      // );
-
-      //
+      log("Sending audio file: ", error: reportModel.audioNotePath);
+      print("Sending audio file: ${reportModel.audioNotePath}");
       request.files.add(await http.MultipartFile.fromPath(
         // 'audio_note',
         'audio_note_path',
@@ -107,15 +100,6 @@ class ReportService extends GetxService {
         reportModel.filePath!,
       ));
     }
-
-    // if (reportModel.audioNotePath != null) {
-    //   // request.files.add(await http.MultipartFile.fromPath(
-    //   //   // 'audio_note',
-    //   //   'audio_note_path',
-    //   //   reportModel.audioNotePath!.path,
-    //   //   // reportModel.audioNotePath!.path,
-    //   // ));
-    // }
 
     try {
       var response = await request.send();

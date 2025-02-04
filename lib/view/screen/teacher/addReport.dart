@@ -1,5 +1,6 @@
 // ignore_for_file: must_be_immutable
 
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
@@ -82,132 +83,76 @@ class AddReportPage extends StatelessWidget {
                                 labelText: '   اضغط لكتابة ملاحظة'),
                           ),
                         ),
-                        Wrap(
-                          children: [
-                            IconButton(
-                              iconSize: 30,
-                              icon: Icon(controller.isRecording
-                                  ? Icons.pause_presentation_sharp
-                                  : Icons.mic),
-                              style: ButtonStyle(
-                                  backgroundColor: const WidgetStatePropertyAll(
-                                      AppColors.actionColor),
-                                  alignment: Alignment.center,
-                                  iconColor: WidgetStateProperty.all(
-                                      controller.isRecording
-                                          ? AppColors.backgroundIDsColor
-                                          : AppColors.backgroundIDsColor)),
-                              onPressed: () async {
-                                if (controller.isRecording) {
-                                  controller.stopRecording();
-                                  controller.isRecording = false;
-                                } else {
-                                  controller.startRecording();
-                                  controller.isRecording = true;
-                                }
-                              },
-                            ),
-                            // if (controller.recordedFilePath != null)
-                            // ElevatedButton(
-                            //   onPressed: () async {
-                            //     await controller.submitReport(
-                            //         // controller.selectedFile;
-                            //         // File(controller.recordedFilePath!.path);
-                            //         File(controller.recordedFilePath!));
-
-                            //     // ));
-                            //     // controller.update();
-                            //   },
-
-                            //   // onPressed: () async {
-                            //   //   await controller.submitReport(File(
-                            //   //       controller.recordedFilePath!.toString()));
-                            //   //   // await controller.sendTeacherAudio(
-                            //   //   // report['id'],
-                            //   //   // File(controller.recordedFilePath!),
-                            //   //   // );
-                            //   // },
-                            //   style: const ButtonStyle(
-                            //       backgroundColor: WidgetStatePropertyAll(
-                            //           AppColors.actionColor)),
-                            //   child: const Text(
-                            //     'إرسال التسجيل',
-                            //     style: TextStyle(
-                            //         color: AppColors.backgroundIDsColor,
-                            //         fontWeight: FontWeight.bold,
-                            //         fontSize: 15),
-                            //   ),
-                            // ),
-
-                            //
-
-                            // ElevatedButton(
-                            //   onPressed: () async {
-                            //     FilePickerResult? result =
-                            //         await FilePicker.platform.pickFiles(
-                            //       type: FileType.audio,
-                            //     );
-
-                            //     if (result != null) {
-                            //       File fileRecord =
-                            //           File(result.files.single.path!);
-                            //       await controller.submitReport(fileRecord);
-                            //     } else {
-                            //       Get.snackbar('خطأ', 'لم يتم اختيار ملف');
-                            //     }
-                            //   },
-                            //   child: const Text('رفع تسجيل صوتي'),
-                            // ),
-                          ],
+                        Center(
+                          child: Wrap(
+                            runSpacing: 5,
+                            spacing: 5,
+                            direction: Axis.horizontal,
+                            runAlignment: WrapAlignment.center,
+                            children: [
+                              IconButton(
+                                iconSize: 30,
+                                icon: Icon(controller.isRecording
+                                    ? Icons.pause_presentation_sharp
+                                    : Icons.mic),
+                                style: ButtonStyle(
+                                    backgroundColor:
+                                        const WidgetStatePropertyAll(
+                                            AppColors.actionColor),
+                                    alignment: Alignment.center,
+                                    iconColor: WidgetStateProperty.all(
+                                        controller.isRecording
+                                            ? AppColors.backgroundIDsColor
+                                            : AppColors.backgroundIDsColor)),
+                                onPressed: () async {
+                                  if (controller.isRecording) {
+                                    controller.stopRecording();
+                                    controller.isRecording = false;
+                                  } else {
+                                    controller.startRecording();
+                                    controller.isRecording = true;
+                                  }
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.cloud_upload_sharp),
+                                style: ButtonStyle(
+                                    backgroundColor: WidgetStateProperty.all(
+                                  AppColors.actionColor,
+                                )),
+                                color: AppColors.backgroundIDsColor,
+                                iconSize: 30,
+                                onPressed: () async {
+                                  FilePickerResult? result =
+                                      await FilePicker.platform.pickFiles(
+                                    type: FileType.audio,
+                                  );
+                                  if (result != null) {
+                                    String? filePath = result.files.single.path;
+                                    if (filePath != null) {
+                                      // await controller.submitReport(File(filePath));
+                                      controller.audioFileSelected =
+                                          File(filePath);
+                                      log("مسار الملف :", error: " $filePath");
+                                      Get.snackbar("مسار الملف : ", filePath,
+                                          backgroundColor:
+                                              AppColors.backgroundIDsColor,
+                                          colorText: AppColors.primaryColor);
+                                    } else {
+                                      Get.snackbar(
+                                          "خطأ!", "لم يتم تحديد اي ملف",
+                                          backgroundColor:
+                                              AppColors.backgroundIDsColor,
+                                          colorText: AppColors.primaryColor);
+                                      log("لم يتم تحديد اي ملف");
+                                    }
+                                  }
+                                },
+                                // child: const Text('رفع ملف صوتي'),
+                              ),
+                            ],
+                          ),
                         ),
-                        // McButton(
-                        //     colorBorder: AppColors.black,
-                        //     colorBtn: AppColors.primaryColor,
-                        //     onTap: () async {
-                        //       // showAudioNoteDialog(context);
-                        //       // Get.to(() => const RecordingScreen());
-                        //       // await controller.recordAudio();
-                        //     },
-                        //     blod: true,
-                        //     txt: 'تسجيل ملاحظة صوتية'),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        ElevatedButton(
-                          onPressed: () async {
-                            FilePickerResult? result =
-                                await FilePicker.platform.pickFiles(
-                              type: FileType.audio,
-                            );
-
-                            if (result != null) {
-                              PlatformFile file = result.files.first;
-                              print("File path: ${file.path}");
-                              // هنا يمكنك استخدام المسار لرفع الملف إلى السيرفر
-                            } else {
-                              print("No file selected");
-
-                              String file = (controller.recordedFilePath!);
-                              await controller.submitReport(File(file));
-                              // }
-                              // file, File(controller.selectedFile!));
-                              // File(controller.recordedFilePath!)
-                              // File(controller.selectedFile!)
-                              // );
-                              // } else {
-                              //   Get.snackbar('خطأ', 'لم يتم اختيار ملف');
-                            }
-                          },
-                          child: const Text('رفع تسجيل صوتي'),
-                        ),
-                        // McButton(
-                        //     colorBorder: AppColors.black,
-                        //     colorBtn: AppColors.primaryColor,
-                        //     onTap: () async {
-                        //       await controller.pickFile();
-                        //     },
-                        //     blod: true,
-                        //     txt: 'تحميل ملف'),
                         const SizedBox(
                           height: 10,
                         ),
@@ -232,7 +177,6 @@ class AddReportPage extends StatelessWidget {
                           height: 10,
                         ),
                         // const Spacer(),
-
                         // Container(
                         //   width: Get.width,
                         //   decoration: BoxDecoration(
@@ -252,12 +196,6 @@ class AddReportPage extends StatelessWidget {
                         //             color: AppColors.black),
                         //       )),
                         // ),
-
-                        // const SizedBox(
-                        //   height: 10,
-                        // ),
-
-                        //
                       ],
                     ),
                   ),

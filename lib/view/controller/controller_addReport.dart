@@ -41,7 +41,7 @@ class AddReportControllerImp extends AddReportController {
   String? selectedFile;
   Crud crud = Crud();
   // File? selectedFile;
-  // File? audioFile;
+  File? audioFileSelected;
   // int? reportId;
   late int studentIdd;
   late int reportId;
@@ -115,12 +115,16 @@ class AddReportControllerImp extends AddReportController {
     update();
   }
 
+//
+
+//
   Future<void> startRecording() async {
     try {
       await requestMicrophonePermission();
       await audioRecorder.openRecorder();
       Directory tempDir = await getTemporaryDirectory();
       recordedFilePath = '${tempDir.path}/recTe.aac';
+      // recordedFilePath = '${tempDir.path}/recTe.mp4';
       await audioRecorder.startRecorder(toFile: recordedFilePath);
       Get.snackbar('نجاح', 'بدأ التسجيل');
       update();
@@ -163,7 +167,7 @@ class AddReportControllerImp extends AddReportController {
   }
 
 //
-  playAudio(String filePath) async {
+  Future playAudio(String? filePath) async {
     statusRequest = StatusRequest.loading;
     update();
     String fullPath = '${AppLink.upload}$filePath';
@@ -194,8 +198,8 @@ class AddReportControllerImp extends AddReportController {
 
           // audioPlayer.isStopped;
         } else if (!audioPlayer.isPaused) {
-          // await audioPlayer.closePlayer();
           await audioPlayer.closePlayer();
+          // await audioPlayer.openPlayer();
 
           update();
         } else {
@@ -215,7 +219,8 @@ class AddReportControllerImp extends AddReportController {
       statusRequest = StatusRequest.none;
       update();
     } catch (e) {
-      Get.snackbar('خطأ', 'فشل في تشغيل التسجيل: $e');
+      // Get.snackbar('خطأ', 'فشل في تشغيل التسجيل: $e');
+      Get.snackbar('اشعار', 'تم ايقاف تشغيل التسجيل');
     }
   }
 
@@ -354,21 +359,14 @@ class AddReportControllerImp extends AddReportController {
 
   @override
   void deleteAudio(int? reportId, String? fieldName) async {
-    // Future deleteAudio(int? reportId, String? fieldName) async {
     Get.back();
     update();
     statusRequest = StatusRequest.loading;
     update();
-
-    // try {
-
     var response = await reportData.deleteAudio(
         reportId?.toInt(), fieldName?.toString().trim());
     statusRequest = await handlingData(response);
     update();
-
-    // response is Map<String, dynamic>;
-
     if (StatusRequest.success == statusRequest) {
       //
 
@@ -390,31 +388,12 @@ class AddReportControllerImp extends AddReportController {
       statusRequest = StatusRequest.none;
       throw Exception(response['message'] ?? 'فشل في حذف الملف الصوتي');
     }
-    // } catch (e) {
-    //   Get.snackbar(
-    //     'لا يمكن الحذف',
-    //     'الملف مرتبط ببيانات أخرى',
-    //     backgroundColor: AppColors.primaryColor,
-    //     colorText: AppColors.backgroundIDsColor,
-    //     animationDuration: const Duration(seconds: 5),
-    //   );
-    // } finally {
-    //   statusRequest = StatusRequest.none;
-    //   update();
-    // }
   }
 
-//
-  // @override
   deleteReport(int? id) async {
-    // Get.back();
-
-    // try {
     Get.back();
     update();
     statusRequest = StatusRequest.loading;
-    update();
-    // Get.back();
     update();
 
     var response = await reportData.deleteReport(id?.toInt());
@@ -433,24 +412,11 @@ class AddReportControllerImp extends AddReportController {
         );
         await getReports();
         update();
-        // hasData = true;
-        // }
-        // statusRequest = StatusRequest.loading;
-        // update();
       }
     } else {
       statusRequest = StatusRequest.none;
       throw Exception(response['message'] ?? 'فشل في حذف التقرير');
     }
-    // } catch (e) {
-    //   Get.snackbar(
-    //     'لايمكن الحذف',
-    //     'مرتبط ببيانات أخرى',
-    //     backgroundColor: AppColors.primaryColor,
-    //     colorText: AppColors.backgroundIDsColor,
-    //     animationDuration: const Duration(seconds: 5),
-    //   );
-    // }
     statusRequest = StatusRequest.none;
     update();
   }
@@ -498,6 +464,9 @@ class AddReportControllerImp extends AddReportController {
 //
   @override
   submitReport(File? audioFile) async {
+    if (audioFileSelected != null) {
+      audioFile = audioFileSelected;
+    }
     statusRequest = StatusRequest.loading;
     update();
     // try {
@@ -537,13 +506,9 @@ class AddReportControllerImp extends AddReportController {
       note: noteController.text,
       audioNotePath: audioFile?.path,
       filePath: audioFile?.path,
-      // filePath: selectedFile!.path,
-      // studentAudioResponsePath: audioFile!.path,
-
-      // audioNotePath: audioFile,
     ));
     statusRequest = await handlingData(response);
-    // log("audioNotePath", error: audioFile);
+    // log("audioNotePath", error: audioFilee);
     update();
     if (StatusRequest.success == statusRequest) {
       if (response['success'] == true) {
