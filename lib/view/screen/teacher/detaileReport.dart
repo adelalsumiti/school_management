@@ -7,7 +7,6 @@ import 'package:mc_utils/mc_utils.dart';
 import 'package:school_management/core/class/handlingdataview.dart';
 import 'package:school_management/core/constant/colors.dart';
 import 'package:school_management/core/constant/routes.dart';
-// import 'package:school_management/core/shaerd/customiconbutton.dart';
 import 'package:school_management/view/controller/controller_addReport.dart';
 import 'package:school_management/view/screen/student/custom_get_report_review_quran.dart';
 import 'package:school_management/view/screen/student/custom_get_report_saved_quran.dart';
@@ -43,7 +42,7 @@ class DetailReport extends StatelessWidget {
           actions: [
             IconButton(
                 onPressed: () async {
-                  control.getReports();
+                  await control.getReports();
                 },
                 icon: const Icon(Icons.refresh))
           ],
@@ -383,12 +382,8 @@ class DetailReport extends StatelessWidget {
                                             String? filePath =
                                                 result.files.single.path;
                                             if (filePath != null) {
-                                              // await controller.submitReport(File(filePath));
                                               await controller.sendTeacherAudio(
                                                   report['id'], File(filePath));
-
-                                              // controller.audioFileSelected =
-                                              // File(filePath);
                                               log("مسار الملف :",
                                                   error: " $filePath");
                                               Get.snackbar(

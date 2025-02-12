@@ -32,6 +32,9 @@ class StudentReportsPage extends StatelessWidget {
           ),
         ],
       ),
+      //
+
+      //
       body: GetBuilder<RoleStudentsReportControllerImp>(
         builder: (controller) => HandlingDataView(
           statusRequest: controller.statusRequest,
@@ -44,6 +47,10 @@ class StudentReportsPage extends StatelessWidget {
               boxShadow: const [BoxShadow(blurRadius: 3, spreadRadius: 2)],
               borderRadius: BorderRadius.circular(20),
             ),
+            //
+
+            //
+
             child: ListView.builder(
               itemCount: controller.reportStudent.length,
               itemBuilder: (context, index) {
@@ -94,45 +101,6 @@ class StudentReportsPage extends StatelessWidget {
                                     const SizedBox(
                                       height: 10,
                                     ),
-                                    // Wrap(
-                                    //   spacing: 5,
-                                    //   crossAxisAlignment:
-                                    //       WrapCrossAlignment.center,
-                                    //   runSpacing: 5,
-                                    //   runAlignment: WrapAlignment.spaceBetween,
-                                    //   alignment: WrapAlignment.center,
-                                    //   direction: Axis.horizontal,
-                                    //   children: [
-                                    //     if (report['audio_note_path'] != null)
-                                    //       McButton(
-                                    //         blod: true,
-                                    //         colorBtn: AppColors.primaryColor,
-                                    //         txt: 'تسجيل المعلم',
-                                    //         fontSize: 15,
-                                    //         onTap: () {
-                                    //           controller.playAudio(
-                                    //               report['audio_note_path']);
-                                    //         },
-                                    //       ),
-                                    //     if (report[
-                                    //             'student_audio_response_path'] !=
-                                    //         null)
-                                    //       McButton(
-                                    //         blod: true,
-                                    //         colorBtn: AppColors.primaryColor,
-                                    //         txt: 'تسجيل الطالب',
-                                    //         fontSize: 15,
-                                    //         onTap: () async {
-                                    //           controller.playAudio(report[
-                                    //               'student_audio_response_path']);
-                                    //         },
-                                    //       ),
-                                    //   ],
-                                    // )
-                                    // //
-                                    // ,
-
-                                    //
                                     Wrap(
                                       spacing: 5,
                                       crossAxisAlignment:
@@ -420,7 +388,7 @@ class StudentReportsPage extends StatelessWidget {
                                 ElevatedButton(
                                   onPressed: () async {
                                     await controller.sendAudioSt(
-                                      report['id'],
+                                      await report['id'],
                                       File(controller.recordedFilePath!),
                                     );
                                   },
@@ -446,3 +414,71 @@ class StudentReportsPage extends StatelessWidget {
     );
   }
 }
+//
+// //
+
+//   ListView.builder(
+// itemCount: controller.reportStudent.length,
+// itemBuilder: (context, index) {
+//   final report = controller.reportStudent[index];
+//   final int surah = int.parse(report['surah'].toString());
+//   final int startVerse = int.parse(report['startVerse']);
+//   final int endVerse = int.parse(report['endVerse']);
+
+//   return Card(
+//     margin: const EdgeInsets.all(8.0),
+//     child: Padding(
+//       padding: const EdgeInsets.all(16.0),
+//       child: Column(
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: [
+//           Text(
+//             'سورة: ${quran.getSurahName(surah)}',
+//             style: const TextStyle(
+//                 fontWeight: FontWeight.bold, fontSize: 18),
+//           ),
+//           const SizedBox(height: 8.0),
+//           Text(
+//             'الآيات: $startVerse - $endVerse',
+//             style: const TextStyle(fontSize: 16),
+//           ),
+//           const SizedBox(height: 8.0),
+//           Column(
+//             crossAxisAlignment: CrossAxisAlignment.start,
+//             children:
+//                 List.generate(endVerse - startVerse + 1, (i) {
+//               int verseNumber = startVerse + i;
+//               return GestureDetector(
+//                 onTap: () => controller.playAyahAudio(
+//                     surah, verseNumber),
+//                 child: Container(
+//                   margin:
+//                       const EdgeInsets.symmetric(vertical: 4),
+//                   padding: const EdgeInsets.all(8),
+//                   decoration: BoxDecoration(
+//                     color: controller.playingAyah ==
+//                             "$surah:$verseNumber"
+//                         ? Colors.green[100]
+//                         : Colors.white,
+//                     borderRadius: BorderRadius.circular(8),
+//                     border: Border.all(color: Colors.grey),
+//                   ),
+//                   child: Text(
+//                     '${quran.getVerse(surah, verseNumber)}  [$verseNumber]',
+//                     style: const TextStyle(fontSize: 14),
+//                   ),
+//                 ),
+//               );
+//             }),
+//           ),
+//         ],
+//       ),
+//     ),
+//   );
+// },
+// ),
+// ))));
+
+//
+//
+//

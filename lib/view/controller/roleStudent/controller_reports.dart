@@ -1,12 +1,13 @@
-import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/public/flutter_sound_player.dart';
 import 'package:flutter_sound/public/flutter_sound_recorder.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
+// import 'package:retry/retry.dart';
 import 'package:school_management/core/class/statusrequest.dart';
 import 'package:school_management/core/constant/colors.dart';
 import 'package:school_management/core/funcations/handlinfdatacontroller.dart';
@@ -14,7 +15,7 @@ import 'package:school_management/data/dataSource/remote/roleStudent/student_dat
 import 'package:school_management/linkapi.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:quran/quran.dart' as quran;
-import 'package:http/http.dart' as http;
+// import 'package:http/http.dart' as http;
 
 abstract class RoleStudentsReportController extends GetxController {
   getReports();
@@ -158,50 +159,98 @@ class RoleStudentsReportControllerImp extends RoleStudentsReportController {
     'الفلق': 113,
     'الناس': 114
   };
-
 //
-  Future<void> sendAudioSt(int reportId, File audioFile) async {
-    statusRequest = StatusRequest.loading;
+  bool isPlayingg = false;
+  String? playingAyah;
+  Future<void> playAyahAudio(int surah, int verse) async {
+    // تحديد رابط الصوت لكل آية
+    String url =
+        "https://www.everyayah.com/data/Minshawy_Mujawwad_64kbps/$surah${verse.toString().padLeft(3, '0')}.mp3";
     update();
-
-    try {
-      var request = http.MultipartRequest(
-        'POST',
-        Uri.parse(AppLink.submitStudentResponse),
-      );
-
-      request.fields['report_id'] = reportId.toString();
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'student_audio_response',
-          audioFile.path,
-        ),
-      );
-
-      var response = await request.send();
-
-      if (response.statusCode == 200) {
-        final responseBody = await response.stream.bytesToString();
-        final jsonResponse = json.decode(responseBody);
-
-        if (jsonResponse['success']) {
-          Get.snackbar('نجاح', 'تم إرسال التسجيل بنجاح');
-          print(
-              'تم رفع الملف إلى: ${jsonResponse['file_path']}'); // طباعة المسار
-          getReports(); // تحديث قائمة التقارير بعد الإرسال
-        } else {
-          Get.snackbar('خطأ', jsonResponse['message']);
-        }
-      } else {
-        Get.snackbar('خطأ', 'فشل في إرسال التسجيل');
-      }
-    } catch (e) {
-      Get.snackbar('خطأ', 'حدث خطأ أثناء إرسال التسجيل: $e');
+    // إيقاف الصوت السابق إذا كان يعمل
+    if (isPlayingg) {
+      await audioPlayer.stopPlayer();
+      update();
+      isPlayingg = false;
+      playingAyah = null;
+      update();
     }
-
-    statusRequest = StatusRequest.none;
+    // تشغيل الصوت الجديد
+    await audioPlayer.openPlayer(isBGService: UrlSource(url));
+    update();
+    isPlayingg = true;
+    playingAyah = "$surah:$verse";
+    update();
+    // عند انتهاء الصوت
+    await audioPlayer.closePlayer();
+    update();
+    isPlayingg = false;
+    playingAyah = null;
     update();
   }
+
+  Future sendAudioSt(int reportId, File audioFile) async {
+    statusRequest = StatusRequest.loading;
+    update();
+    var request = await studentData.sendRecordSt(reportId, audioFile);
+    log("reportID: $reportId , audioFile: $audioFile ==");
+    statusRequest = await handlingData(request);
+    update();
+    if (statusRequest == StatusRequest.success) {
+      if (request['success']) {
+        Get.snackbar('نجاح', 'تم إرسال التسجيل بنجاح');
+        print(
+            'تم رفع الملف إلى: ${request['audio_note_path']}'); // طباعة المسار
+        await getReports(); // تحديث قائمة التقارير بعد الإرسال
+        update();
+      } else {
+        statusRequest = StatusRequest.serverException;
+        // Get.snackbar('خطأ', jsonResponse['message']);
+        log('خطأ', error: request['message']);
+      }
+    } else {
+      statusRequest = StatusRequest.failure;
+      Get.snackbar('خطأ', 'فشل في إرسال التسجيل');
+    }
+  }
+// //
+// is good:
+  // Future<void> sendAudioSt(int reportId, File audioFile) async {
+  //   statusRequest = StatusRequest.loading;
+  //   update();
+  //   try {
+  //     var request = http.MultipartRequest(
+  //       'POST',
+  //       Uri.parse(AppLink.submitStudentResponse),
+  //     );
+  //     request.fields['report_id'] = reportId.toString();
+  //     request.files.add(
+  //       await http.MultipartFile.fromPath(
+  //         'student_audio_response',
+  //         audioFile.path,
+  //       ),
+  //     );
+  //     var response = await request.send();
+  //     if (response.statusCode == 200) {
+  //       final responseBody = await response.stream.bytesToString();
+  //       final jsonResponse = json.decode(responseBody);
+  //       if (jsonResponse['success']) {
+  //         Get.snackbar('نجاح', 'تم إرسال التسجيل بنجاح');
+  //         print(
+  //             'تم رفع الملف إلى: ${jsonResponse['file_path']}'); // طباعة المسار
+  //         getReports(); // تحديث قائمة التقارير بعد الإرسال
+  //       } else {
+  //         Get.snackbar('خطأ', jsonResponse['message']);
+  //       }
+  //     } else {
+  //       Get.snackbar('خطأ', 'فشل في إرسال التسجيل');
+  //     }
+  //   } catch (e) {
+  //     Get.snackbar('خطأ', 'حدث خطأ أثناء إرسال التسجيل: $e');
+  //   }
+  //   statusRequest = StatusRequest.none;
+  //   update();
+  // }
 
   Future<void> startRecording() async {
     try {
@@ -238,92 +287,55 @@ class RoleStudentsReportControllerImp extends RoleStudentsReportController {
     }
   }
 
-  void playAudio(String filePath) async {
-    //
+//
+
+//
+  Future playAudio(String? filePath) async {
+    statusRequest = StatusRequest.loading;
+    update();
+    String? fullPath = '${AppLink.upload}$filePath';
     try {
-      // إضافة المسار الكامل إذا كان المسار غير كامل
-      String fullPath = '${AppLink.upload}$filePath';
-
-      // التحقق من وجود الملف على السيرفر
-      final response = await http.head(Uri.parse(fullPath));
-      if (response.statusCode == 200) {
+      var response = await studentData.getPlayAudio(fullPath);
+      statusRequest = await handlingData(response);
+      update();
+      if (StatusRequest.success == statusRequest) {
         // تأكد من أن المشغل مفتوح
-        if (!(audioPlayer.isPlaying)) {
+        if (!audioPlayer.isPlaying) {
           await audioPlayer.openPlayer();
+          update();
+        } else {
+          await audioPlayer.closePlayer();
+          update();
         }
-
         // تشغيل الصوت باستخدام المسار الكامل
         await audioPlayer.startPlayer(fromURI: fullPath);
+        update();
+
         Get.snackbar('نجاح', 'بدأ تشغيل التسجيل');
+        if (audioPlayer.isPlaying) {
+          await audioPlayer.openPlayer();
+          update();
+        } else if (!audioPlayer.isPaused) {
+          await audioPlayer.closePlayer();
+          update();
+        } else {
+          await audioPlayer.stopPlayer();
+          update();
+        }
+        update();
       } else {
         Get.snackbar('خطأ', 'الملف غير موجود');
         // Get.snackbar('خطأ', 'الملف غير موجود: $fullPath');
         log('خطأ', error: 'الملف غير موجود: $fullPath');
       }
+
+      statusRequest = StatusRequest.none;
+      update();
     } catch (e) {
-      Get.snackbar('خطأ', 'فشل في تشغيل التسجيل: $e');
+      // Get.snackbar('خطأ', 'فشل في تشغيل التسجيل: $e');
+      Get.snackbar('اشعار', 'تم ايقاف تشغيل التسجيل');
     }
   }
-  //
-
-//
-  Future<Map<String, dynamic>> sendAudioNote({
-    required int studentId,
-    required File file,
-    // required int teacherId,
-    required File audioFile,
-  }) async {
-    var request = await studentData.sendRecord(studentId.toInt(), file);
-    // final url = Uri.parse(AppLink.addReport); // رابط API الخاص بك
-    // final request = http.MultipartRequest('POST', url);
-    // request.fields['student_id'] = studentId.toInt().toString();
-    // request.fields['teacher_id'] = teacherId.toInt().toString();
-    // request.files
-    //     .add(await http.MultipartFile.fromPath('audio_note', audioFile.path));
-    Future<bool> fileExists(String path) async {
-      return await File(path).exists();
-    }
-
-    if (await fileExists(audioFile.path)) {
-      // request.files
-      // .add(await http.MultipartFile.fromPath('audio_note', audioFile.path));
-      // var file = await MultipartFile.fromPath('audio_note', audioFilePath!) ;
-      // تابع التنفيذ
-    } else {
-      // return;
-      print('الملف غير موجود: ${audioFile.path}');
-    }
-    final response = await request.send();
-    if (response.statusCode == 200) {
-      final responseBody = await response.stream.bytesToString();
-      return json.decode(responseBody);
-    } else {
-      return {'success': false, 'message': 'فشل في إرسال الملاحظة الصوتية'};
-    }
-  }
-
-//
-  void sendAudioNoteToTeacher(File audioFile) async {
-    prefs = await SharedPreferences.getInstance();
-    statusRequest = StatusRequest.loading;
-    update();
-    studentIdd = prefs.getInt("id")!;
-    // teacherIdd = prefs.getInt("id")!;
-    // أضف الكود لإرسال الملف إلى السيرفر
-    // final response = await reportService.sendReport(ReportModel(
-    final response = await sendAudioNote(
-      file: audioFile,
-      studentId: studentIdd.toInt(), // استبدل بالقيم المناسبة
-      // teacherId: teacherIdd.toInt(),
-      audioFile: audioFile,
-    );
-    if (response['success']) {
-      Get.snackbar('نجاح', 'تم إرسال الملاحظة الصوتية بنجاح');
-    } else {
-      Get.snackbar('خطأ', 'فشل في إرسال الملاحظة الصوتية');
-    }
-  }
-//
 
   @override
   void deleteAudio(int? reportId, String? fieldName) async {
@@ -332,19 +344,11 @@ class RoleStudentsReportControllerImp extends RoleStudentsReportController {
     update();
     statusRequest = StatusRequest.loading;
     update();
-
-    // try {
-
     var response = await studentData.deleteAudio(
         reportId?.toInt(), fieldName?.toString().trim());
     statusRequest = await handlingData(response);
     update();
-
-    // response is Map<String, dynamic>;
-
     if (StatusRequest.success == statusRequest) {
-      //
-
       if (response['success'] == true) {
         Get.snackbar(
           "نجاح",

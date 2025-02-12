@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dartz/dartz.dart';
 import 'package:school_management/core/class/curd.dart';
 import 'package:school_management/linkapi.dart';
 
@@ -23,14 +24,34 @@ class StudentData {
   //
 
 // Send Record
-  sendRecord(int? idRecord, File file) async {
-    var response = await crud.postUploadAudio(AppLink.addReport, file);
+  sendRecord(int idRecord, File file) async {
+    var response =
+        await crud.postUploadAudio(AppLink.addReport, file, idRecord);
     print('=============== StudentData DeleteRecord ID: $idRecord =======');
     print('=============== StudentData DeleteRecord : $response ===========');
 
     return response.fold((l) => l, (r) => r);
   }
-//
+
+  //
+  // Send Record
+  sendRecordSt(int idRecord, File audioFile) async {
+    var response = await crud.postAudioSt(
+        AppLink.submitStudentResponse, audioFile, idRecord);
+    print('=============== StudentData DeleteRecord ID: $idRecord =======');
+    print('=============== StudentData DeleteRecord : $response ===========');
+    return response.fold((l) => l, (r) => r);
+  }
+
+// Get PlayAudio :
+  getPlayAudio(String fullPath) async {
+    var response = await crud.getPlayAudio(fullPath);
+    print('=============== FilePath ID: $fullPath');
+    print('=============== ReportData getPlayAudio : $response ===========');
+    // return response.fold((l) => l, (r) => r);
+    //this is soultion(الملف غير موجود) =>
+    return response.fold((l) => left(l), (r) => r);
+  }
 
 // Delete Record
   deleteRecord(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:school_management/core/constant/colors.dart';
 import 'package:school_management/core/constant/imageAssets.dart';
 import 'package:school_management/core/class/statusrequest.dart';
 
@@ -12,8 +13,13 @@ class HandlingDataView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return statusRequest == StatusRequest.loading
-        ? Center(
-            child: Lottie.asset(AppImageAsset.loading, width: 250, height: 250))
+        ? const Center(
+            // child: Lottie.asset(AppImageAsset.loading, width: 250, height: 250)
+            child: CircularProgressIndicator(
+            color: AppColors.black,
+            strokeWidth: 8,
+            strokeAlign: 3,
+          ))
         : statusRequest == StatusRequest.offlinefailure
             ? Center(
                 child: Lottie.asset(AppImageAsset.offline,

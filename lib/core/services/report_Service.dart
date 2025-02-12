@@ -74,7 +74,7 @@ class ReportService extends GetxService {
     request.fields['class_id'] = reportModel.classId.toString();
     request.fields['assessment'] = reportModel.assessment ?? '';
     request.fields['note'] = reportModel.note ?? '';
-    request.fields['surah'] = reportModel.surah ?? '';
+    request.fields['surah'] = reportModel.surah.toString();
     request.fields['startVerse'] = reportModel.startVerse.toString();
     request.fields['endVerse'] = reportModel.endVerse.toString();
     request.fields['surahReview'] = reportModel.surahReview ?? '';

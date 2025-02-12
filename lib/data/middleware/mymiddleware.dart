@@ -16,10 +16,7 @@ class MyMiddleWare extends GetMiddleware {
       return RouteSettings(name: AppRoute.homePage);
     }
     if (myServices.sharedPreferences.getString("loginPage") == "1") {
-      //   // return  DrawerScreen();
-      return RouteSettings(name: AppRoute.loginPage
-          //       // name: AppRoute.home
-          );
+      return RouteSettings(name: AppRoute.loginPage);
     } else {
       return RouteSettings(name: AppRoute.loginPage);
     }

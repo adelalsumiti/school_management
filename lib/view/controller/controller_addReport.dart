@@ -1,16 +1,13 @@
-import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-// import 'package:flutter/services.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:school_management/core/class/curd.dart';
 import 'package:school_management/core/class/statusrequest.dart';
-// import 'package:permission_handler/permission_handler.dart';
 import 'package:school_management/core/constant/colors.dart';
 import 'package:school_management/core/funcations/handlinfdatacontroller.dart';
 import 'package:school_management/core/services/report_Service.dart';
@@ -18,12 +15,10 @@ import 'package:school_management/data/dataSource/remote/roleTeacher/report_data
 import 'package:school_management/data/model/report_Model.dart';
 import 'package:school_management/linkapi.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
 import 'package:quran/quran.dart' as quran;
 
 abstract class AddReportController extends GetxController {
   submitReport(File? audioFile);
-  // deleteReport(int? id);
   deleteAudio(int? reportId, String? fieldName);
   getReports();
   initialData();
@@ -40,9 +35,7 @@ class AddReportControllerImp extends AddReportController {
   TextEditingController noteController = TextEditingController();
   String? selectedFile;
   Crud crud = Crud();
-  // File? selectedFile;
   File? audioFileSelected;
-  // int? reportId;
   late int studentIdd;
   late int reportId;
   late int studentId;
@@ -59,72 +52,104 @@ class AddReportControllerImp extends AddReportController {
   int? userId;
   File? selectedPickFile;
   List<String> items = ['ممتاز', 'جيد', 'متوسط', 'ضعيف'];
-  // FlutterSoundRecorder? audioRecorder;
-  // String? audioFilePath;
-  //
-
   FlutterSoundRecorder audioRecorder = FlutterSoundRecorder();
-  // FlutterSoundPlayer audioPlayer = FlutterSoundPlayer();
-  FlutterSoundPlayer audioPlayer = FlutterSoundPlayer();
+  late FlutterSoundPlayer audioPlayer = FlutterSoundPlayer();
+  late FlutterSoundPlayer audioPlayerAyah = FlutterSoundPlayer();
   bool isRecording = false;
   String? recordedFilePath;
-
+  bool isLoading = false;
+  bool isPlayingg = false;
+  bool isPlayinggAyah = false;
+  String? playingAyah;
+  //  مسار القارئ المختار
+  String? moqra = 'Nasser_Alqatami_128kbps';
+  // القيمة المختارة
+  Map<String, dynamic>? selectedNameMoqra;
+  //   خريطة اسماء ومسارات القراء
+  final List<Map<String, dynamic>> nameMoqra = [
+    {'name': 'المنشاوي', 'value': 'Minshawy_Mujawwad_64kbps'},
+    {'name': 'الحصري', 'value': 'Husary_Mujawwad_64kbps'},
+    {'name': 'محمد ايوب', 'value': 'Muhammad_Ayyoub_64kbps'},
+    {'name': 'سعود الشريم', 'value': 'Saood_ash-Shuraym_64kbps'},
+    {'name': 'ياسر الدوسري', 'value': 'Yasser_Ad-Dussary_128kbps'},
+    {'name': 'ناصر القطامي', 'value': 'Nasser_Alqatami_128kbps'},
+  ];
   //
-
-//
-  Future<void> sendTeacherAudio(int reportId, File audioFile) async {
+  Future<void> playAyahAudio(int surah, int verse) async {
     statusRequest = StatusRequest.loading;
     update();
-
-    try {
-      var request = http.MultipartRequest(
-        'POST',
-        Uri.parse(AppLink.submitTeacherResponse),
-      );
-
-      request.fields['report_id'] = reportId.toString();
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'audio_note_path',
-          audioFile.path,
-        ),
-      );
-
-      var response = await request.send();
-
-      if (response.statusCode == 200) {
-        final responseBody = await response.stream.bytesToString();
-        final jsonResponse = json.decode(responseBody);
-
-        if (jsonResponse['success']) {
-          Get.snackbar('نجاح', 'تم إرسال التسجيل بنجاح');
-          print(
-              'تم رفع الملف إلى: ${jsonResponse['file_path']}'); // طباعة المسار
-          getReports(); // تحديث قائمة التقارير بعد الإرسال
-        } else {
-          Get.snackbar('خطأ', jsonResponse['message']);
-        }
+    isLoading = true;
+    update();
+    log("surahNumber", error: surah);
+    log("VerseNumber", error: verse);
+    // تحديد رابط الصوت لكل آية
+    String fullPath =
+        "https://www.everyayah.com/data/$moqra/${surah.toString().padLeft(3, '0')}${verse.toString().padLeft(3, '0')}.mp3";
+    // try {
+    var response = await reportData.getPlayAyahAudio(fullPath);
+    statusRequest = await handlingData(await response);
+    update();
+    //
+    if (StatusRequest.success == statusRequest) {
+      isLoading = true;
+      // تأكد من أن المشغل مفتوح
+      if (!audioPlayerAyah.isPlaying) {
+        await audioPlayerAyah.openPlayer();
+        // تشغيل الصوت باستخدام المسار الكامل
+        await audioPlayerAyah.startPlayer(fromURI: fullPath);
+        isPlayinggAyah = true;
+        playingAyah = "$surah:$verse";
+        isLoading = false;
+        update();
       } else {
-        Get.snackbar('خطأ', 'فشل في إرسال التسجيل');
+        isLoading = false;
+        await audioPlayerAyah.closePlayer();
+        isPlayinggAyah = false;
+        playingAyah = null;
+        update();
       }
-    } catch (e) {
-      Get.snackbar('خطأ', 'حدث خطأ أثناء إرسال التسجيل: $e');
     }
 
-    statusRequest = StatusRequest.none;
+    // statusRequest = StatusRequest.none;
+    isLoading = false;
     update();
+    // } catch (e) {
+    //   // Get.snackbar('خطأ', 'فشل في تشغيل التسجيل: $e');
+    //   // Get.snackbar('اشعار', 'تم ايقاف تشغيل التسجيل');
+    // }
   }
 
 //
+  Future sendTeacherAudio(int reportId, File audioFile) async {
+    statusRequest = StatusRequest.loading;
+    update();
+    var request = await reportData.sendRecord(reportId, audioFile);
+    statusRequest = await handlingData(request);
+    update();
+    if (statusRequest == StatusRequest.success) {
+      if (request['success']) {
+        Get.snackbar('نجاح', 'تم إرسال التسجيل بنجاح');
+        print(
+            'تم رفع الملف إلى: ${request['audio_note_path']}'); // طباعة المسار
+        await getReports(); // تحديث قائمة التقارير بعد الإرسال
+        update();
+      } else {
+        statusRequest = StatusRequest.serverException;
+        // Get.snackbar('خطأ', jsonResponse['message']);
+        log('خطأ', error: request['message']);
+      }
+    } else {
+      statusRequest = StatusRequest.failure;
+      Get.snackbar('خطأ', 'فشل في إرسال التسجيل');
+    }
+  }
 
-//
   Future<void> startRecording() async {
     try {
       await requestMicrophonePermission();
       await audioRecorder.openRecorder();
       Directory tempDir = await getTemporaryDirectory();
       recordedFilePath = '${tempDir.path}/recTe.aac';
-      // recordedFilePath = '${tempDir.path}/recTe.mp4';
       await audioRecorder.startRecorder(toFile: recordedFilePath);
       Get.snackbar('نجاح', 'بدأ التسجيل');
       update();
@@ -170,13 +195,12 @@ class AddReportControllerImp extends AddReportController {
   Future playAudio(String? filePath) async {
     statusRequest = StatusRequest.loading;
     update();
-    String fullPath = '${AppLink.upload}$filePath';
+    String? fullPath = '${AppLink.upload}$filePath';
     try {
       var response = await reportData.getPlayAudio(fullPath);
       statusRequest = await handlingData(response);
       update();
       if (StatusRequest.success == statusRequest) {
-        //  update();
         // تأكد من أن المشغل مفتوح
         if (!audioPlayer.isPlaying) {
           await audioPlayer.openPlayer();
@@ -185,28 +209,19 @@ class AddReportControllerImp extends AddReportController {
           await audioPlayer.closePlayer();
           update();
         }
-        // update();
         // تشغيل الصوت باستخدام المسار الكامل
         await audioPlayer.startPlayer(fromURI: fullPath);
         update();
 
         Get.snackbar('نجاح', 'بدأ تشغيل التسجيل');
-        // if (audioPlayer.isPaused) {
         if (audioPlayer.isPlaying) {
           await audioPlayer.openPlayer();
           update();
-
-          // audioPlayer.isStopped;
         } else if (!audioPlayer.isPaused) {
           await audioPlayer.closePlayer();
-          // await audioPlayer.openPlayer();
-
           update();
         } else {
-          // if (!audioPlayer.isPlaying) {
-          // await audioPlayer.closePlayer();
           await audioPlayer.stopPlayer();
-
           update();
         }
         update();
@@ -224,6 +239,7 @@ class AddReportControllerImp extends AddReportController {
     }
   }
 
+//
   // خريطة تربط أسماء السور بأرقامها
   final Map<String, int> surahMap = {
     'الفاتحة': 1,
@@ -342,7 +358,7 @@ class AddReportControllerImp extends AddReportController {
     'الناس': 114
   };
   //
-  String getVerses(String surahName, int startVerse, int endVerse) {
+  String getVersesReview(String surahName, int startVerse, int endVerse) {
     // الحصول على رقم السورة بناءً على اسمها
     int? surahNumber = surahMap[surahName];
     if (surahNumber == null) {
@@ -356,7 +372,21 @@ class AddReportControllerImp extends AddReportController {
   }
 
   //
+  String getVerses(int surahName, int startVerse, int endVerse) {
+    // الحصول على رقم السورة بناءً على اسمها
+    int? surahNumberNew = surahMap[surahName];
+    if (surahNumberNew == null) {
+      return 'السورة غير موجودة';
+    }
+    String verses = '';
+    for (int i = startVerse; i <= endVerse; i++) {
+      verses +=
+          ' ${quran.getVerse(surahNumberNew, i)}﴿$i﴾ '; // إضافة النص لكل آية
+    }
+    return verses;
+  }
 
+//
   @override
   void deleteAudio(int? reportId, String? fieldName) async {
     Get.back();
@@ -476,12 +506,13 @@ class AddReportControllerImp extends AddReportController {
     teacherIdd = prefs.getInt("id")!;
     startVersee = prefs.getInt("startVerse") ?? 0;
     endVersee = prefs.getInt("endVerse") ?? 0;
-    selectedSurah = prefs.getString("surah");
+    selectedSurah = prefs.getString("surah") ?? "";
     startVerseReview = prefs.getInt("startVerseReview") ?? 0;
     endVerseReview = prefs.getInt("endVerseReview") ?? 0;
     selectedSurahReview = prefs.getString("surahReview");
 
-    // log("$selectedSurah", name: 'selectedSurah', error: selectedSurah);
+    log("$selectedSurah", name: 'selectedSurah', error: selectedSurah);
+    print("=========selectedSurah => $selectedSurah ==");
     // log("$startVersee", name: 'startVersee', error: startVersee);
     // log("$endVersee", name: 'endVersee', error: endVersee);
     // log("$selectedSurahReview",
@@ -545,73 +576,12 @@ class AddReportControllerImp extends AddReportController {
           colorText: AppColors.backgroundIDsColor,
           animationDuration: const Duration(seconds: 5),
         );
-        // statusRequest = StatusRequest.none;
       }
     }
 
     statusRequest = StatusRequest.none;
     update();
   }
-
-  // @override
-  // sendReport() async {
-  //   prefs = await SharedPreferences.getInstance();
-  //   // SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   teacherIdd = prefs.getInt("id")!;
-  //   classIdd = prefs.getInt("class_id")!;
-  //   log("$teacherIdd", name: 'teacherId', error: teacherIdd);
-  //   log("$classIdd", name: 'classId', error: classIdd);
-  //   studentIdd = prefs.getInt("student_id")!;
-  //   log("$studentIdd", name: 'studentId', error: studentIdd);
-  //   final url = Uri.parse(AppLink.addReport);
-  //   var request = http.MultipartRequest('POST', url);
-  //   // إضافة الحقول إلى الطلب
-  //   request.fields['student_id'] = reportModel.studentId.toString();
-  //   request.fields['class_id'] = reportModel.classId.toString();
-  //   request.fields['teacher_id'] = reportModel.teacherId.toString();
-  //   request.fields['assessment'] = reportModel.assessment ?? '';
-  //   request.fields['note'] = reportModel.note ?? '';
-  //   request.fields['surah'] = reportModel.surah ?? '';
-  //   request.fields['startVerse'] = reportModel.startVerse.toString();
-  //   request.fields['endVerse'] = reportModel.endVerse.toString();
-  //   request.fields['surahReview'] = reportModel.surahReview ?? '';
-  //   request.fields['startVerseReview'] =
-  //       reportModel.startVerseReview.toString();
-  //   request.fields['endVerseReview'] = reportModel.endVerseReview.toString();
-  //   // request.fields['file_path'] = reportModel.filePath.toString();
-  //   // request.fields['audio_note_path'] = reportModel.audioNotePath.toString();
-  //   // إضافة الملف إذا كان موجودًا
-  //   if (reportModel.filePath != null) {
-  //     request.files.add(await http.MultipartFile.fromPath(
-  //         'file', reportModel.filePath!.path));
-  //   }
-  //   // إضافة الملف الصوتي إذا كان موجودًا
-  //   if (reportModel.audioNotePath != null) {
-  //     request.files.add(await http.MultipartFile.fromPath(
-  //         'audio_note', reportModel.audioNotePath!.path));
-  //   }
-  //   isLoading = true;
-  //   // إرسال الطلب واستلام الاستجابة
-  //   try {
-  //     final response = await request.send();
-  //     if (response.statusCode == 200) {
-  //       final responseBody = await response.stream.bytesToString();
-  //       return json.decode(responseBody);
-  //     } else {
-  //       return {
-  //         'success': false,
-  //         'message':
-  //             'فشل في الاتصال بالخادم. رمز الخطأ: ${response.statusCode}',
-  //       };
-  //     }
-  //   } catch (e) {
-  //     return {
-  //       'success': false,
-  //       'message': 'حدث خطأ أثناء الإرسال: $e',
-  //     };
-  //   }
-  // }
-  //
 
   //
   @override
@@ -628,13 +598,13 @@ class AddReportControllerImp extends AddReportController {
   @override
   initialData() async {
     statusRequest = StatusRequest.none;
-
     // reportModel = ReportModel();
     // reportService = ReportService();
     getReports();
 
     // await audioRecorder.openRecorder();
     // await audioPlayer.openPlayer();
+    // await audioPlayerAyah.openPlayer();
   }
 
   //
@@ -772,6 +742,7 @@ class AddReportControllerImp extends AddReportController {
 
   //
   void showQuranSelectionDialog(BuildContext context) {
+    // int? selectedSurah;
     String? selectedSurah;
     int? startVerse;
     int? endVerse;
@@ -793,6 +764,9 @@ class AddReportControllerImp extends AddReportController {
                     onChanged: (value) async {
                       setState(() {
                         selectedSurah = value;
+                        log("selectedSurah", name: "======$selectedSurah");
+                        print("==========selectedSurah => $selectedSurah");
+
                         startVerse = null;
                         endVerse = null;
                       });
@@ -801,7 +775,8 @@ class AddReportControllerImp extends AddReportController {
                       114,
                       (index) {
                         int surahNumber = index + 1;
-                        return DropdownMenuItem<String>(
+                        return DropdownMenuItem(
+                          // value: surahNumber.toString(),
                           value: surahNumber.toString(),
                           child: Text(
                               'سورة ${quran.getSurahNameArabic(surahNumber)}'),
@@ -818,13 +793,16 @@ class AddReportControllerImp extends AddReportController {
                       onChanged: (value) async {
                         setState(() {
                           startVerse = value;
+
                           if (endVerse != null && endVerse! < startVerse!) {
                             endVerse = null;
                           }
                         });
                       },
                       items: List.generate(
-                        quran.getVerseCount(int.parse(selectedSurah!)),
+                        quran
+                            .getVerseCount(int.parse(selectedSurah.toString())),
+                        // quran.getVerseCount(selectedSurah!),
                         (index) => DropdownMenuItem<int>(
                           value: index + 1,
                           child: Text('آية ${index + 1}'),
@@ -844,7 +822,9 @@ class AddReportControllerImp extends AddReportController {
                         log("$endVerse", name: "$endVerse");
                       },
                       items: List.generate(
-                        quran.getVerseCount(int.parse(selectedSurah!)),
+                        quran
+                            .getVerseCount(int.parse(selectedSurah.toString())),
+                        // quran.getVerseCount(selectedSurah!),
                         (index) {
                           int verseNumber = index + 1;
                           return verseNumber >= startVerse!
@@ -892,8 +872,7 @@ class AddReportControllerImp extends AddReportController {
         print('إلى الآية: ${result['endVerse']}');
       }
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString(
-          'surah', quran.getSurahNameArabic(int.parse(result['surah'])));
+      await prefs.setString('surah', selectedSurah.toString());
 
       await prefs.setInt('startVerse', result['startVerse']);
 
@@ -911,9 +890,9 @@ class AddReportControllerImp extends AddReportController {
 //
 
   void printVerse() {
-    int surahNumber = 2; // سورة البقرة
+    int surahNumberNew = 2; // سورة البقرة
     int verseNumber = 255; // آية الكرسي
-    print(quran.getVerse(surahNumber, verseNumber)); // النص الكامل للآية
+    print(quran.getVerse(surahNumberNew, verseNumber)); // النص الكامل للآية
   }
 //
 

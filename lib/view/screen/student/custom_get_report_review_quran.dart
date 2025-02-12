@@ -22,7 +22,7 @@ class StudentReportReviewQuranPage extends StatelessWidget {
                 final int startVerseReview = report['startVerseReview'];
                 final int endVerseReview = report['endVerseReview'];
 
-                final verses = controller.getVerses(
+                final verses = controller.getVersesReview(
                     surahReviewName, startVerseReview, endVerseReview);
 
                 return Card(
